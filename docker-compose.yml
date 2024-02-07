@@ -62,23 +62,27 @@ services:
           cpus: "0.2"
           memory: "50MB"
 
-  # sim, a senha esta root e aporta esta como default :P
-  # nao facam isso em producao rsrs
   db:
     container_name: db
-    image: mysql:8.0
-    command: mysqld --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    image: postgres:latest
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: RINHA_BACKEND
-      MYSQL_USER: rinha
-      MYSQL_PASSWORD: backend
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      - POSTGRES_PASSWORD=backend
+      - POSTGRES_USER=rinha
+      - POSTGRES_DB=rinha-backend
     ports:
-      - '3306:3306'
+      - '5432:5432'
+    command: postgres -c 'max_connections=30'
     volumes:
-      - './data:/docker-entrypoint-initdb.d'
+      - ./data/import.sql:/docker-entrypoint-initdb.d/script.sql
+    deploy:
+      resources:
+        limits:
+          cpus: "0.8"
+          memory: "250MB"
     healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
-      timeout: 20s
-      retries: 10
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_interval: 10s
+
