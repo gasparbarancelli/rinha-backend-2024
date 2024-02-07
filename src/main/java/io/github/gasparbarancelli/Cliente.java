@@ -19,14 +19,7 @@ public class Cliente {
 
     private int saldo;
 
-    @Version
-    private Long version;
-
     public Cliente() {
-    }
-
-    public int getId() {
-        return id;
     }
 
     public int getLimite() {
@@ -49,8 +42,8 @@ public class Cliente {
         return saldo + limite;
     }
 
-    public static boolean existe(int id) {
-        return id <= 5 && id >= 1;
+    public static boolean naoExiste(int id) {
+        return id < 1 || id > 5;
     }
 
     @Override

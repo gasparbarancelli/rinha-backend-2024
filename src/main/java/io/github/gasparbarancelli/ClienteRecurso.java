@@ -21,7 +21,7 @@ public class ClienteRecurso {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional(Transactional.TxType.REQUIRED)
     public Response debitoCredito(@PathParam("id") int id, TransacaoRequisicao transacaoRequisicao) {
-        if (!Cliente.existe(id)) {
+        if (Cliente.naoExiste(id)) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -29,16 +29,16 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        var cliente = entityManager.find(Cliente.class, id, LockModeType.READ);
+        var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
+        var transacao = transacaoRequisicao.geraTransacao(id);
 
         if (TipoTransacao.d.equals(transacaoRequisicao.tipo())
-                && cliente.getSaldoComLimite() < transacaoRequisicao.valor()) {
+                && cliente.getSaldoComLimite() < transacao.getValor()) {
             return Response.status(422).build();
         }
 
-        var transacao = transacaoRequisicao.geraTransacao(id);
         entityManager.persist(transacao);
-        cliente.atualizaSaldo(transacaoRequisicao.valor(), transacaoRequisicao.tipo());
+        cliente.atualizaSaldo(transacao.getValor(), transacaoRequisicao.tipo());
         entityManager.persist(cliente);
         var transacaoResposta = new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
         return Response.ok(transacaoResposta).build();
@@ -48,7 +48,7 @@ public class ClienteRecurso {
     @Path("/{id}/extrato")
     @Produces(MediaType.APPLICATION_JSON)
     public Response extrato(@PathParam("id") int id) {
-        if (!Cliente.existe(id)) {
+        if (Cliente.naoExiste(id)) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 

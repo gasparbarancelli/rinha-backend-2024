@@ -3,9 +3,7 @@ version: '3'
 services:
 
   api1:
-    network_mode: "host"
     container_name: api1
-    hostname: api1
     image: gasparbarancelli/rinha-backend-2024:latest
     environment:
       - DATABASE_HOSTNAME=db
@@ -27,9 +25,7 @@ services:
         hard: 1000000
 
   api2:
-    network_mode: "host"
     container_name: api2
-    hostname: api2
     image: gasparbarancelli/rinha-backend-2024:latest
     environment:
       - DATABASE_HOSTNAME=db
@@ -51,7 +47,6 @@ services:
         hard: 1000000
 
   nginx:
-    network_mode: "host"
     container_name: nginx
     image: nginx:latest
     volumes:
@@ -70,8 +65,6 @@ services:
   # sim, a senha esta root e aporta esta como default :P
   # nao facam isso em producao rsrs
   db:
-    network_mode: "host"
-    hostname: db
     container_name: db
     image: mysql:8.0
     command: mysqld --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
