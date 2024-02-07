@@ -1,5 +1,8 @@
 package io.github.gasparbarancelli;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public record TransacaoRequisicao(
         String valor,
         TipoTransacao tipo,

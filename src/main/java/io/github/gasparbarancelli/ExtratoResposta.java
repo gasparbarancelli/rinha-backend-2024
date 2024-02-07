@@ -2,15 +2,18 @@ package io.github.gasparbarancelli;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@RegisterForReflection
 public record ExtratoResposta(
         ExtratoSaldoResposta saldo,
         @JsonProperty("ultimas_transacoes")
         List<ExtratoTransacaoResposta> transacoes) {
 
+    @RegisterForReflection
     public record ExtratoSaldoResposta(
             int total,
             @JsonProperty("data_extrato")
@@ -20,6 +23,7 @@ public record ExtratoResposta(
 
     }
 
+    @RegisterForReflection
     public record ExtratoTransacaoResposta(
             int valor,
             TipoTransacao tipo,
