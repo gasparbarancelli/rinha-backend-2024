@@ -1,5 +1,6 @@
 package io.github.gasparbarancelli;
 
+import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -20,6 +21,7 @@ public class ClienteRecurso {
     @Path("/{id}/transacoes")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional(Transactional.TxType.REQUIRED)
+    @RunOnVirtualThread
     public Response debitoCredito(@PathParam("id") int id, TransacaoRequisicao transacaoRequisicao) {
         if (Cliente.naoExiste(id)) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -47,6 +49,7 @@ public class ClienteRecurso {
     @GET
     @Path("/{id}/extrato")
     @Produces(MediaType.APPLICATION_JSON)
+    @RunOnVirtualThread
     public Response extrato(@PathParam("id") int id) {
         if (Cliente.naoExiste(id)) {
             return Response.status(Response.Status.NOT_FOUND).build();
