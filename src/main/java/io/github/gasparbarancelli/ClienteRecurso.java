@@ -1,6 +1,7 @@
 package io.github.gasparbarancelli;
 
 import io.smallrye.common.annotation.RunOnVirtualThread;
+import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
