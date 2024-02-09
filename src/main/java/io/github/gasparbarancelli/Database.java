@@ -21,7 +21,7 @@ public class Database {
             var cliente = entityManager.find(Cliente.class, 1, LockModeType.PESSIMISTIC_READ);
             if (Objects.isNull(cliente)) {
                 entityManager.createNativeQuery("""
-                        REPLACE INTO CLIENTE (ID, LIMITE, SALDO)
+                        INSERT INTO CLIENTE (ID, LIMITE, SALDO)
                         VALUES (1, 100000, 0),
                                (2, 80000, 0),
                                (3, 1000000, 0),
@@ -29,8 +29,8 @@ public class Database {
                                (5, 500000, 0);
             """).executeUpdate();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignore) {
+            // ignore
         }
     }
 }
