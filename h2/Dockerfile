@@ -1,12 +1,13 @@
-FROM adoptopenjdk:11-jre-hotspot
+FROM ghcr.io/graalvm/graalvm-ce:21.3.3
 
-ENV H2_ZIP http://www.h2database.com/h2-2019-03-13.zip
+ENV H2_ZIP https://github.com/h2database/h2database/releases/download/version-2.2.224/h2-2023-09-17.zip
 ENV H2_PORT 9092
 ENV H2_CONSOLE_PORT 8082
 ENV H2_DATA /var/lib/h2
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y unzip && \
-    curl ${H2_ZIP} -o h2.zip && unzip -q h2.zip -d /opt/ && rm h2.zip && \
+RUN microdnf install -y unzip && \
+    microdnf install -y wget && \
+    wget ${H2_ZIP} && unzip -q h2-2023-09-17.zip -d /opt/ && \
     mkdir ${H2_DATA}
 
 EXPOSE ${H2_PORT} ${H2_CONSOLE_PORT}
