@@ -10,13 +10,13 @@ import jakarta.transaction.Transactional;
 import java.util.Objects;
 
 @ApplicationScoped
-public class Init {
+public class Database {
 
     @Inject
     EntityManager entityManager;
 
     @Transactional
-    public void incluirClientes() {
+    public void inicializar() {
         try {
             var cliente = entityManager.find(Cliente.class, 1, LockModeType.PESSIMISTIC_READ);
             if (Objects.isNull(cliente)) {

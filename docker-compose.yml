@@ -13,19 +13,12 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "125MB"
-    logging:
-      driver: none
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 1000000
-        hard: 1000000
+          cpus: "0.3"
+          memory: "100MB"
 
   api2:
     container_name: api2
-    image: gasparbarancelli/rinha-backend-2024:latest
+    image: gasparbarancelli/rinha-backend-2024-h2:latest
     environment:
       - DATABASE_HOSTNAME=db
       - QUARKUS_HTTP_PORT=8082
@@ -36,15 +29,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "125MB"
-    logging:
-      driver: none
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 1000000
-        hard: 1000000
+          cpus: "0.3"
+          memory: "100MB"
 
   envoy:
     container_name: envoy
@@ -61,18 +47,15 @@ services:
       - api2
     ports:
       - "9999:9999"
-    logging:
-      driver: none
     command: ["envoy", "-c", "/etc/envoy/envoy.yaml"]
 
   db:
     container_name: db
-    image: jesperdj/h2:latest
+    image: gasparbarancelli/rinha-backend-database:latest
     ports:
-      - '8082:8082'
       - '9092:9092'
     deploy:
       resources:
         limits:
-          cpus: "0.8"
+          cpus: "0.7"
           memory: "250MB"

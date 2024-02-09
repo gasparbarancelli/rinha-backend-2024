@@ -11,10 +11,10 @@ import jakarta.inject.Inject;
 public class StartupBean {
 
     @Inject
-    Init init;
+    Database database;
 
     void onStart(@Observes StartupEvent ev) {
-        // Método a ser executado quando a aplicação inicia
-        init.incluirClientes();
+        database.inicializar();
     }
+
 }
