@@ -52,7 +52,7 @@ public class Teste {
         }
     }
 
-    public ExtratoResposta extrato(Integer clienteId) {
+    public ExtratoResposta extrato(int clienteId) {
         Lock lock = locks.get(clienteId);
         lock.lock();
         try {

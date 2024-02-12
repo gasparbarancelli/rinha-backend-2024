@@ -3,6 +3,8 @@ package io.github.gasparbarancelli;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.persistence.*;
 
+import java.util.Objects;
+
 
 @Entity
 @Table(name = "CLIENTE")
@@ -11,29 +13,29 @@ public class Cliente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
-    private Integer limite;
+    private int limite;
 
-    private Integer saldo;
+    private int saldo;
 
     public Cliente() {
     }
 
-    public Cliente(Integer id, Integer limite) {
+    public Cliente(int id, int limite) {
         this.id = id;
         this.limite = limite;
     }
 
-    public Integer getLimite() {
+    public int getLimite() {
         return limite;
     }
 
-    public Integer getSaldo() {
+    public int getSaldo() {
         return saldo;
     }
 
-    public void atualizaSaldo(Integer valor, TipoTransacao tipoTransacao) {
+    public void atualizaSaldo(int valor, TipoTransacao tipoTransacao) {
         if (TipoTransacao.d.equals(tipoTransacao)) {
             saldo = saldo - valor;
         } else {
@@ -41,12 +43,24 @@ public class Cliente {
         }
     }
 
-    public Integer getSaldoComLimite() {
+    public int getSaldoComLimite() {
         return saldo + limite;
     }
 
-    public static boolean naoExiste(Integer id) {
+    public static boolean naoExiste(int id) {
         return id < 1 || id > 5;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Cliente cliente = (Cliente) o;
+        return id == cliente.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

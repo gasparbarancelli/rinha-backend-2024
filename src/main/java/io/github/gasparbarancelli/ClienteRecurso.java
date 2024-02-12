@@ -14,7 +14,7 @@ public class ClienteRecurso {
     @Path("/{id}/transacoes")
     @Produces(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
-    public Response debitoCredito(@PathParam("id") Integer id, TransacaoRequisicao transacaoRequisicao) {
+    public Response debitoCredito(@PathParam("id") int id, TransacaoRequisicao transacaoRequisicao) {
         if (Cliente.naoExiste(id)) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -36,7 +36,7 @@ public class ClienteRecurso {
     @Path("/{id}/extrato")
     @Produces(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
-    public Response extrato(@PathParam("id") Integer id) {
+    public Response extrato(@PathParam("id") int id) {
         if (Cliente.naoExiste(id)) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
