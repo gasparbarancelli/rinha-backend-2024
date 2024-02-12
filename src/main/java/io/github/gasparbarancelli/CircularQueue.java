@@ -1,8 +1,8 @@
 package io.github.gasparbarancelli;
 
-import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public class CircularQueue<E> extends LinkedList<E> {
+public class CircularQueue<E> extends LinkedBlockingQueue<E> {
     private final int capacity;
 
     public CircularQueue(int capacity){
@@ -10,11 +10,11 @@ public class CircularQueue<E> extends LinkedList<E> {
     }
 
     @Override
-    public boolean add(E e) {
+    public boolean add(E element) {
         if (size() >= capacity) {
-            removeFirst();
+            super.remove();
         }
-        return super.add(e);
+        return super.add(element);
     }
 
 }
