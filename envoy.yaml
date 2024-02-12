@@ -12,46 +12,28 @@ static_resources:
                 route_config:
                   name: local_route
                   virtual_hosts:
-                    - name: local_service_api1
+                    - name: local_service
                       domains: ["*"]
                       routes:
-                        - match:
-                            safe_regex:
-                              regex: "/clientes/[135]/.*"
-                              google_re2: {}
+                        - match: { prefix: "/" }
                           route:
-                            cluster: api1
-                            timeout: 0s
-                        - match:
-                            safe_regex:
-                              regex: "/clientes/[24]/.*"
-                              google_re2: {}
-                          route:
-                            cluster: api1
+                            cluster: api
                             timeout: 0s
                 http_filters:
                   - name: envoy.filters.http.router
 
   clusters:
-    - name: api1
+    - name: api
       connect_timeout: 0.25s
       lb_policy: round_robin
       type: STRICT_DNS
       load_assignment:
-        cluster_name: api1
+        cluster_name: api
         endpoints:
           - lb_endpoints:
               - endpoint:
                   address:
                     socket_address: { address: api1, port_value: 8081 }
-    - name: api2
-      connect_timeout: 0.25s
-      lb_policy: round_robin
-      type: STRICT_DNS
-      load_assignment:
-        cluster_name: api2
-        endpoints:
-          - lb_endpoints:
               - endpoint:
                   address:
                     socket_address: { address: api2, port_value: 8082 }
