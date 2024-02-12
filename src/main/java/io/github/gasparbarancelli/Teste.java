@@ -53,16 +53,22 @@ public class Teste {
     }
 
     public ExtratoResposta extrato(Integer clienteId) {
-        var cliente = mapCliente.get(clienteId);
-        var transacoes = mapClienteTransacoes.get(clienteId)
-                .stream()
-                .map(ExtratoResposta.ExtratoTransacaoResposta::gerar)
-                .toList();
+        Lock lock = locks.get(clienteId);
+        lock.lock();
+        try {
+            var cliente = mapCliente.get(clienteId);
+            var transacoes = mapClienteTransacoes.get(clienteId)
+                    .stream()
+                    .map(ExtratoResposta.ExtratoTransacaoResposta::gerar)
+                    .toList();
 
-        return new ExtratoResposta(
-                new ExtratoResposta.ExtratoSaldoResposta(cliente.getSaldo(), LocalDateTime.now(), cliente.getLimite()),
-                transacoes
-        );
+            return new ExtratoResposta(
+                    new ExtratoResposta.ExtratoSaldoResposta(cliente.getSaldo(), LocalDateTime.now(), cliente.getLimite()),
+                    transacoes
+            );
+        } finally {
+            lock.unlock();
+        }
     }
 
 }

@@ -15,7 +15,7 @@ public record ExtratoResposta(
 
     @RegisterForReflection
     public record ExtratoSaldoResposta(
-            int total,
+            Integer total,
             @JsonProperty("data_extrato")
             @JsonFormat(pattern = "yyyy-MM-dd'T'hh:mm:ss.SSS'Z'")
             LocalDateTime data,
@@ -25,7 +25,7 @@ public record ExtratoResposta(
 
     @RegisterForReflection
     public record ExtratoTransacaoResposta(
-            int valor,
+            Integer valor,
             TipoTransacao tipo,
             String descricao,
             @JsonProperty("realizada_em")

@@ -4,7 +4,6 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "TRANSACAO")
@@ -13,12 +12,12 @@ public class Transacao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(name = "CLIENTE_ID")
-    private int cliente;
+    private Integer cliente;
 
-    private int valor;
+    private Integer valor;
 
     @Enumerated(EnumType.STRING)
     private TipoTransacao tipo;
@@ -27,14 +26,14 @@ public class Transacao {
 
     private LocalDateTime data;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
     public Transacao() {
     }
 
-    public Transacao(int cliente, int valor, TipoTransacao tipo, String descricao) {
+    public Transacao(Integer cliente, Integer valor, TipoTransacao tipo, String descricao) {
         this.cliente = cliente;
         this.valor = valor;
         this.tipo = tipo;
@@ -42,11 +41,11 @@ public class Transacao {
         this.data = LocalDateTime.now();
     }
 
-    public int getCliente() {
+    public Integer getCliente() {
         return cliente;
     }
 
-    public int getValor() {
+    public Integer getValor() {
         return valor;
     }
 
@@ -62,16 +61,4 @@ public class Transacao {
         return data;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Transacao transacao = (Transacao) o;
-        return id == transacao.id;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }
