@@ -22,6 +22,11 @@ public class Cliente {
     public Cliente() {
     }
 
+    public Cliente(int id, int limite) {
+        this.id = id;
+        this.limite = limite;
+    }
+
     public int getLimite() {
         return limite;
     }
@@ -42,7 +47,7 @@ public class Cliente {
         return saldo + limite;
     }
 
-    public static boolean naoExiste(int id) {
+    public static boolean naoExiste(Integer id) {
         return id < 1 || id > 5;
     }
 
