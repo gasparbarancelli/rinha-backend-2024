@@ -27,9 +27,6 @@ static_resources:
                           route:
                             cluster: api1
                             timeout: 0s
-                    - name: local_service_api2
-                      domains: ["*"]
-                      routes:
                         - match: { prefix: "/clientes/4/" }
                           route:
                             cluster: api2
