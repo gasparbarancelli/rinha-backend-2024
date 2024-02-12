@@ -1,20 +1,28 @@
 package io.github.gasparbarancelli;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Teste {
+@ApplicationScoped
+public class ClienteService {
+
+    @Inject
+    TransacaoDataSource transacaoDataSource;
 
     private final Map<Integer, Cliente> mapCliente = new HashMap<>(5);
     private final Map<Integer, List<Transacao>> mapClienteTransacoes = new HashMap<>(5);
     private final Map<Integer, Lock> locks = new HashMap<>(5);
 
-    public Teste() {
+    public ClienteService() {
         this.mapCliente.put(1, new Cliente(1, 100000));
         this.mapCliente.put(2, new Cliente(2, 80000));
         this.mapCliente.put(3, new Cliente(3, 1000000));
@@ -45,6 +53,10 @@ public class Teste {
             clienteTransacoes.addFirst(transacao);
 
             cliente.atualizaSaldo(transacao.getValor(), transacao.getTipo());
+
+            Executors.newVirtualThreadPerTaskExecutor().execute(() -> {
+                transacaoDataSource.persisteTransacao(transacao);
+            });
 
             return new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
         } finally {
