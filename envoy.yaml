@@ -15,25 +15,19 @@ static_resources:
                     - name: local_service_api1
                       domains: ["*"]
                       routes:
-                        - match: { prefix: "/clientes/1/" }
+                        - match:
+                            safe_regex:
+                              regex: "/clientes/[135]/.*"
+                              google_re2: {}
                           route:
                             cluster: api1
                             timeout: 0s
-                        - match: { prefix: "/clientes/2/" }
+                        - match:
+                            safe_regex:
+                              regex: "/clientes/[24]/.*"
+                              google_re2: {}
                           route:
                             cluster: api1
-                            timeout: 0s
-                        - match: { prefix: "/clientes/3/" }
-                          route:
-                            cluster: api1
-                            timeout: 0s
-                        - match: { prefix: "/clientes/4/" }
-                          route:
-                            cluster: api2
-                            timeout: 0s
-                        - match: { prefix: "/clientes/5/" }
-                          route:
-                            cluster: api2
                             timeout: 0s
                 http_filters:
                   - name: envoy.filters.http.router
