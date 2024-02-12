@@ -3,11 +3,14 @@ package io.github.gasparbarancelli;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Teste {
 
     private final Map<Integer, Cliente> mapCliente = new HashMap<>(5);
     private final Map<Integer, CircularQueue<Transacao>> mapClienteTransacoes = new HashMap<>(5);
+    private final Map<Integer, Lock> locks = new HashMap<>(5);
 
     public Teste() {
         this.mapCliente.put(1, new Cliente(1, 100000));
@@ -18,23 +21,30 @@ public class Teste {
 
         for (int i = 1; i <= 5; i++) {
             mapClienteTransacoes.put(i, new CircularQueue<>(10));
+            locks.put(i, new ReentrantLock());
         }
     }
 
-    public synchronized TransacaoResposta efetuarTransacao(Transacao transacao) throws Exception {
-        var cliente = mapCliente.get(transacao.getCliente());
+    public TransacaoResposta efetuarTransacao(Transacao transacao) throws Exception {
+        Lock lock = locks.get(transacao.getCliente());
+        lock.lock();
+        try {
+            var cliente = mapCliente.get(transacao.getCliente());
 
-        if (TipoTransacao.d.equals(transacao.getTipo())
-                && cliente.getSaldoComLimite() < transacao.getValor()) {
-            throw new Exception("");
+            if (TipoTransacao.d.equals(transacao.getTipo())
+                    && cliente.getSaldoComLimite() < transacao.getValor()) {
+                throw new Exception("");
+            }
+
+            var clienteTransacoes = mapClienteTransacoes.get(transacao.getCliente());
+            clienteTransacoes.add(transacao);
+
+            cliente.atualizaSaldo(transacao.getValor(), transacao.getTipo());
+
+            return new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
+        } finally {
+            lock.unlock();
         }
-
-        var clienteTransacoes = mapClienteTransacoes.get(transacao.getCliente());
-        clienteTransacoes.add(transacao);
-
-        cliente.atualizaSaldo(transacao.getValor(), transacao.getTipo());
-
-        return new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
     }
 
     public ExtratoResposta extrato(Integer clienteId) {
