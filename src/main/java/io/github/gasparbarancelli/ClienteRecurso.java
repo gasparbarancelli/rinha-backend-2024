@@ -15,6 +15,14 @@ public class ClienteRecurso {
     @Produces(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
     public Response debitoCredito(@PathParam("id") Integer id, TransacaoRequisicao transacaoRequisicao) {
+        if (Cliente.naoExiste(id)) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        if (!transacaoRequisicao.ehValido()) {
+            return Response.status(422).build();
+        }
+
         try {
             var transacao = transacaoRequisicao.geraTransacao(id);
             var transacaoResposta = teste.efetuarTransacao(transacao);
@@ -29,6 +37,10 @@ public class ClienteRecurso {
     @Produces(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
     public Response extrato(@PathParam("id") Integer id) {
+        if (Cliente.naoExiste(id)) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
         var extrato = teste.extrato(id);
         return Response.ok(extrato).build();
     }

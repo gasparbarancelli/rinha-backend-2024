@@ -47,6 +47,10 @@ public class Cliente {
         return saldo + limite;
     }
 
+    public static boolean naoExiste(int id) {
+        return id < 1 || id > 5;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
