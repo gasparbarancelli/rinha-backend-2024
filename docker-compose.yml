@@ -42,8 +42,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.2"
-          memory: "50MB"
+          cpus: "0.3"
+          memory: "100MB"
     depends_on:
       - api1
       - api2
@@ -68,8 +68,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "200MB"
+          cpus: "0.4"
+          memory: "150MB"
     logging:
       driver: none
     healthcheck:
