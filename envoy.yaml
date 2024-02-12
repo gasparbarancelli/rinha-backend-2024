@@ -12,25 +12,55 @@ static_resources:
                 route_config:
                   name: local_route
                   virtual_hosts:
-                    - name: local_service
+                    - name: local_service_api1
                       domains: ["*"]
                       routes:
-                        - match: { prefix: "/" }
+                        - match: { prefix: "/clientes/1/" }
                           route:
-                            cluster: api
+                            cluster: api1
+                            timeout: 0s
+                        - match: { prefix: "/clientes/2/" }
+                          route:
+                            cluster: api1
+                            timeout: 0s
+                        - match: { prefix: "/clientes/3/" }
+                          route:
+                            cluster: api1
+                            timeout: 0s
+                    - name: local_service_api2
+                      domains: ["*"]
+                      routes:
+                        - match: { prefix: "/clientes/4/" }
+                          route:
+                            cluster: api2
+                            timeout: 0s
+                        - match: { prefix: "/clientes/5/" }
+                          route:
+                            cluster: api2
                             timeout: 0s
                 http_filters:
                   - name: envoy.filters.http.router
 
   clusters:
-    - name: api
+    - name: api1
       connect_timeout: 0.25s
       lb_policy: round_robin
       type: STRICT_DNS
       load_assignment:
-        cluster_name: api
+        cluster_name: api1
         endpoints:
           - lb_endpoints:
               - endpoint:
                   address:
                     socket_address: { address: api1, port_value: 8081 }
+    - name: api2
+      connect_timeout: 0.25s
+      lb_policy: round_robin
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: api2
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: { address: api2, port_value: 8082 }
