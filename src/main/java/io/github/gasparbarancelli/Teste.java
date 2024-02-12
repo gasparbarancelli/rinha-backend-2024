@@ -1,13 +1,13 @@
 package io.github.gasparbarancelli;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Teste {
 
-    private final Map<Integer, Cliente> mapCliente = new HashMap<>(5);
-    private final Map<Integer, CircularQueue<Transacao>> mapClienteTransacoes = new HashMap<>(5);
+    private final Map<Integer, Cliente> mapCliente = new ConcurrentHashMap<>(5);
+    private final Map<Integer, CircularQueue<Transacao>> mapClienteTransacoes = new ConcurrentHashMap<>(5);
 
     public Teste() {
         this.mapCliente.put(1, new Cliente(1, 100000));

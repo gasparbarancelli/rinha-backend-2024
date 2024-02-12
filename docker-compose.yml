@@ -16,27 +16,6 @@ services:
         limits:
           cpus: "0.4"
           memory: "125MB"
-    logging:
-      driver: none
-
-  api2:
-    container_name: api2
-    image: gasparbarancelli/rinha-backend-2024:latest
-    environment:
-      - DATABASE_HOSTNAME=db
-      - QUARKUS_HTTP_PORT=8082
-    ports:
-      - '8082:8082'
-    depends_on:
-      db:
-        condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: "0.4"
-          memory: "125MB"
-    logging:
-      driver: none
 
   envoy:
     container_name: envoy
@@ -50,7 +29,6 @@ services:
           memory: "50MB"
     depends_on:
       - api1
-      - api2
     ports:
       - "9999:9999"
     logging:
