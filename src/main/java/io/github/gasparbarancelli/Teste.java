@@ -1,7 +1,9 @@
 package io.github.gasparbarancelli;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -9,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Teste {
 
     private final Map<Integer, Cliente> mapCliente = new HashMap<>(5);
-    private final Map<Integer, CircularQueue<Transacao>> mapClienteTransacoes = new HashMap<>(5);
+    private final Map<Integer, List<Transacao>> mapClienteTransacoes = new HashMap<>(5);
     private final Map<Integer, Lock> locks = new HashMap<>(5);
 
     public Teste() {
@@ -20,7 +22,7 @@ public class Teste {
         this.mapCliente.put(5, new Cliente(5, 500000));
 
         for (int i = 1; i <= 5; i++) {
-            mapClienteTransacoes.put(i, new CircularQueue<>(10));
+            mapClienteTransacoes.put(i, new ArrayList<>(10));
             locks.put(i, new ReentrantLock());
         }
     }
@@ -37,7 +39,10 @@ public class Teste {
             }
 
             var clienteTransacoes = mapClienteTransacoes.get(transacao.getCliente());
-            clienteTransacoes.add(transacao);
+            if (clienteTransacoes.size() >= 10) {
+                clienteTransacoes.removeLast();
+            }
+            clienteTransacoes.addFirst(transacao);
 
             cliente.atualizaSaldo(transacao.getValor(), transacao.getTipo());
 
@@ -48,22 +53,16 @@ public class Teste {
     }
 
     public ExtratoResposta extrato(Integer clienteId) {
-        Lock lock = locks.get(clienteId);
-        lock.lock();
-        try {
-            var cliente = mapCliente.get(clienteId);
-            var transacoes = mapClienteTransacoes.get(clienteId)
-                    .stream()
-                    .map(ExtratoResposta.ExtratoTransacaoResposta::gerar)
-                    .toList();
+        var cliente = mapCliente.get(clienteId);
+        var transacoes = mapClienteTransacoes.get(clienteId)
+                .stream()
+                .map(ExtratoResposta.ExtratoTransacaoResposta::gerar)
+                .toList();
 
-            return new ExtratoResposta(
-                    new ExtratoResposta.ExtratoSaldoResposta(cliente.getSaldo(), LocalDateTime.now(), cliente.getLimite()),
-                    transacoes
-            );
-        } finally {
-            lock.unlock();
-        }
+        return new ExtratoResposta(
+                new ExtratoResposta.ExtratoSaldoResposta(cliente.getSaldo(), LocalDateTime.now(), cliente.getLimite()),
+                transacoes
+        );
     }
 
 }
