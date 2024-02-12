@@ -36,6 +36,36 @@ static_resources:
                             cluster: api2
                             timeout: 0s
                 http_filters:
+                  - name: envoy.filters.http.lua
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+                      inline_code: |
+                        function envoy_on_request(request_handle)
+                          local request_headers, request_body = request_handle:headers(), request_handle:body()
+                          local json = require("rapidjson")
+                          local body = json.decode(request_body)
+                        
+                          -- Validar valor
+                          local valor = body.valor
+                          if valor == nil or type(valor) ~= "number" or tostring(valor):find("%.") then
+                            request_handle:respond({[":status"] = "422"}, "Payload inválido: valor")
+                            return
+                          end
+                        
+                          -- Validar tipo
+                          local tipo = body.tipo
+                          if tipo == nil or (tipo ~= "c" and tipo ~= "d") then
+                            request_handle:respond({[":status"] = "422"}, "Payload inválido: tipo")
+                            return
+                          end
+                        
+                          -- Validar descricao
+                          local descricao = body.descricao
+                          if descricao == nil or type(descricao) ~= "string" or #descricao > 10 then
+                            request_handle:respond({[":status"] = "422"}, "Payload inválido: descricao")
+                            return
+                          end
+                        end
                   - name: envoy.filters.http.router
 
   clusters:
