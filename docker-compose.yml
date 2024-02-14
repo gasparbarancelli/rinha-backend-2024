@@ -3,14 +3,14 @@ services:
   api1:
     container_name: api1
     image: gasparbarancelli/rinha-backend-2024-file-lock:latest
-    network_mode: host
+    #network_mode: host
     environment:
       - QUARKUS_HTTP_PORT=8081
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - app-data:/work
+    ports:
+      - '8081:8081'
     deploy:
       resources:
         limits:
@@ -20,14 +20,14 @@ services:
   api2:
     container_name: api2
     image: gasparbarancelli/rinha-backend-2024-file-lock:latest
-    network_mode: host
+    #network_mode: host
     environment:
       - QUARKUS_HTTP_PORT=8082
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - app-data:/work
+    ports:
+      - '8082:8082'
     deploy:
       resources:
         limits:
@@ -37,9 +37,11 @@ services:
   envoy:
     container_name: envoy
     image: envoyproxy/envoy:v1.29.1
-    network_mode: host
+    #network_mode: host
     volumes:
       - ./envoy.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - '9999:9999'
     deploy:
       resources:
         limits:
@@ -53,12 +55,14 @@ services:
   mongodb:
     container_name: mongodb
     image: mongo
-    network_mode: host
+    #network_mode: host
+    ports:
+      - '27017:27017'
 
   db:
     container_name: db
     image: postgres:latest
-    network_mode: host
+    #network_mode: host
     environment:
       - POSTGRES_PASSWORD=backend
       - POSTGRES_USER=rinha
@@ -66,6 +70,8 @@ services:
     command: 'postgres -c max_connections=1000 -c work_mem=8MB -c hot_standby=off -c shared_buffers=135MB -c checkpoint_timeout=1d -c wal_level=minimal -c synchronous_commit=off -c fsync=off -c full_page_writes=off -c max_wal_senders=0'
     volumes:
       - ./import.sql:/docker-entrypoint-initdb.d/script.sql
+    ports:
+      - '5432:5432'
     deploy:
       resources:
         limits:
