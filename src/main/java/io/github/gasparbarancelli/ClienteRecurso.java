@@ -38,6 +38,7 @@ public class ClienteRecurso {
         }
 
         DistributedLock lock = sherlock.createLock("cliente-" + id);
+        lock.acquire();
         try {
             var transacao = transacaoRequisicao.geraTransacao(id);
             var transacaoResposta = clienteService.exefutarTransacao(transacao);
