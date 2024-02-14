@@ -2,7 +2,7 @@ package io.github.gasparbarancelli;
 
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.RollbackException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -16,7 +16,6 @@ public class ClienteRecurso {
     @POST
     @Path("/{id}/transacoes")
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional(Transactional.TxType.REQUIRED)
     @RunOnVirtualThread
     public Response debitoCredito(@PathParam("id") int id, TransacaoRequisicao transacaoRequisicao) {
         if (Cliente.naoExiste(id)) {
@@ -27,9 +26,15 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
+        return efetuarTransacao(id, transacaoRequisicao);
+    }
+
+    Response efetuarTransacao(int clienteId, TransacaoRequisicao transacaoRequisicao) {
         try {
-            var transacaoResposta = clienteService.efetuarTransacao(transacaoRequisicao.geraTransacao(id));
+            var transacaoResposta = clienteService.efetuarTransacao(transacaoRequisicao.geraTransacao(clienteId));
             return Response.ok(transacaoResposta).build();
+        } catch (RollbackException le) {
+            return efetuarTransacao(clienteId, transacaoRequisicao);
         } catch (Exception e) {
             return Response.status(422).build();
         }

@@ -4,7 +4,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-import org.eclipse.microprofile.faulttolerance.Retry;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.transaction.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +15,8 @@ public class ClienteService {
     @Inject
     EntityManager entityManager;
 
-    @Retry(delay = 0, maxRetries = 5)
+
+    @Transactional
     public TransacaoResposta efetuarTransacao(Transacao transacao) throws Exception {
         var cliente = entityManager.find(Cliente.class, transacao.getCliente(), LockModeType.WRITE);
 
