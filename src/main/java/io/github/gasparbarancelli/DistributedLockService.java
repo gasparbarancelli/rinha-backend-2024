@@ -1,29 +1,30 @@
 package io.github.gasparbarancelli;
 
 import com.coditory.sherlock.DistributedLock;
-import com.coditory.sherlock.MongoSherlockBuilder;
 import com.coditory.sherlock.Sherlock;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
+import com.coditory.sherlock.SqlSherlockBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
-import org.bson.Document;
+
+import javax.sql.DataSource;
+import java.time.Clock;
+import java.time.Duration;
 
 @ApplicationScoped
 public class DistributedLockService {
 
     @Inject
-    MongoClient mongoClient;
+    DataSource dataSource;
 
     @Produces
     public DistributedLock lock() {
-        MongoCollection<Document> collection = mongoClient
-                .getDatabase("sherlock")
-                .getCollection("locks");
-
-        Sherlock sherlock = MongoSherlockBuilder.mongoSherlock()
-                .withLocksCollection(collection)
+        Sherlock sherlock= SqlSherlockBuilder.sqlSherlock()
+                .withClock(Clock.systemDefaultZone())
+                .withLockDuration(Duration.ofMinutes(5))
+                .withUniqueOwnerId()
+                .withConnectionPool(dataSource)
+                .withLocksTable("LOCKS")
                 .build();
 
         return sherlock.createLock("cliente-lock");

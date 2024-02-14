@@ -6,7 +6,6 @@ services:
     #network_mode: host
     environment:
       - DATABASE_HOSTNAME=db
-      - MONGO=mongodb
       - QUARKUS_HTTP_PORT=8081
     depends_on:
       db:
@@ -25,7 +24,6 @@ services:
     #network_mode: host
     environment:
       - DATABASE_HOSTNAME=db
-      - MONGO=mongodb
       - QUARKUS_HTTP_PORT=8082
     depends_on:
       db:
@@ -55,13 +53,6 @@ services:
       - api1
       - api2
     command: ["envoy", "-c", "/etc/envoy/envoy.yaml"]
-
-  mongodb:
-    container_name: mongodb
-    image: mongo
-    #network_mode: host
-    ports:
-      - '27017:27017'
 
   db:
     container_name: db
