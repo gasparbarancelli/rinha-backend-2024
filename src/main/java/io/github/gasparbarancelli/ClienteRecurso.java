@@ -26,15 +26,15 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        return efetuarTransacao(id, transacaoRequisicao);
+        return efetuarTransacao(id, transacaoRequisicao, true);
     }
 
-    Response efetuarTransacao(int clienteId, TransacaoRequisicao transacaoRequisicao) {
+    Response efetuarTransacao(int clienteId, TransacaoRequisicao transacaoRequisicao, boolean otimista) {
         try {
-            var transacaoResposta = clienteService.efetuarTransacao(transacaoRequisicao.geraTransacao(clienteId));
+            var transacaoResposta = clienteService.efetuarTransacao(transacaoRequisicao.geraTransacao(clienteId), otimista);
             return Response.ok(transacaoResposta).build();
         } catch (RollbackException le) {
-            return efetuarTransacao(clienteId, transacaoRequisicao);
+            return efetuarTransacao(clienteId, transacaoRequisicao, false);
         } catch (Exception e) {
             return Response.status(422).build();
         }

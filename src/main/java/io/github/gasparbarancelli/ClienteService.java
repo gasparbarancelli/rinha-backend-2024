@@ -4,7 +4,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 
 import java.time.LocalDateTime;
@@ -17,8 +16,14 @@ public class ClienteService {
 
 
     @Transactional
-    public TransacaoResposta efetuarTransacao(Transacao transacao) throws Exception {
-        var cliente = entityManager.find(Cliente.class, transacao.getCliente(), LockModeType.WRITE);
+    public TransacaoResposta efetuarTransacao(Transacao transacao, boolean otimista) throws Exception {
+        var lockMode = otimista ? LockModeType.WRITE : LockModeType.PESSIMISTIC_WRITE;
+
+        var cliente = entityManager.find(
+                Cliente.class,
+                transacao.getCliente(),
+                lockMode
+        );
 
         if (TipoTransacao.d.equals(transacao.getTipo())
                 && cliente.getSaldoComLimite() < transacao.getValor()) {
