@@ -1,6 +1,7 @@
 package io.github.gasparbarancelli;
 
 import com.coditory.sherlock.DistributedLock;
+import com.coditory.sherlock.Sherlock;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -20,7 +21,7 @@ public class ClienteRecurso {
     ClienteService clienteService;
 
     @Inject
-    DistributedLock lock;
+    Sherlock sherlock;
 
 
     @POST
@@ -36,8 +37,8 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
+        DistributedLock lock = sherlock.createLock("cliente-" + id);
         try {
-            lock.acquire();
             var transacao = transacaoRequisicao.geraTransacao(id);
             var transacaoResposta = clienteService.exefutarTransacao(transacao);
             return Response.ok(transacaoResposta).build();

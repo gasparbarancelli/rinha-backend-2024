@@ -1,6 +1,5 @@
 package io.github.gasparbarancelli;
 
-import com.coditory.sherlock.DistributedLock;
 import com.coditory.sherlock.Sherlock;
 import com.coditory.sherlock.SqlSherlockBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -18,15 +17,15 @@ public class DistributedLockService {
     DataSource dataSource;
 
     @Produces
-    public DistributedLock lock() {
-        Sherlock sherlock= SqlSherlockBuilder.sqlSherlock()
+    public Sherlock sherLock() {
+        return SqlSherlockBuilder.sqlSherlock()
                 .withClock(Clock.systemDefaultZone())
                 .withLockDuration(Duration.ofMinutes(5))
                 .withUniqueOwnerId()
                 .withConnectionPool(dataSource)
                 .withLocksTable("LOCKS")
                 .build();
-
-        return sherlock.createLock("cliente-lock");
     }
+
+
 }
