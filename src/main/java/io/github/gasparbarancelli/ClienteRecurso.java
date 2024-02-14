@@ -7,6 +7,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.time.LocalDateTime;
 
@@ -18,6 +20,18 @@ public class ClienteRecurso {
 
     @Inject
     ClienteService clienteService;
+
+    public ClienteRecurso() {
+        try {
+            for (int i = 1; i <= 5; i++) {
+                var fileName = String.format("/app/cliente-%d.txt", i);
+                var file = new File(fileName);
+                file.createNewFile();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @POST
     @Path("/{id}/transacoes")
