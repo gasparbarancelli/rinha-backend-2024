@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.redisson.api.RLock;
 
 import java.time.LocalDateTime;
 
@@ -16,6 +17,9 @@ public class ClienteRecurso {
 
     @Inject
     EntityManager entityManager;
+
+    @Inject
+    RedisDataSource redisDataSource;
 
     @POST
     @Path("/{id}/transacoes")
@@ -31,19 +35,24 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
-        var transacao = transacaoRequisicao.geraTransacao(id);
+        RLock lock = redisDataSource.getClient().getLock("lock-" + id);
+        lock.lock();
+        try {
+            var cliente = entityManager.find(Cliente.class, id);
+            var transacao = transacaoRequisicao.geraTransacao(id);
 
-        if (TipoTransacao.d.equals(transacaoRequisicao.tipo())
-                && cliente.getSaldoComLimite() < transacao.getValor()) {
-            return Response.status(422).build();
+            if (TipoTransacao.d.equals(transacaoRequisicao.tipo())
+                    && cliente.getSaldoComLimite() < transacao.getValor()) {
+                return Response.status(422).build();
+            }
+
+            entityManager.persist(transacao);
+            cliente.atualizaSaldo(transacao.getValor(), transacaoRequisicao.tipo());
+            var transacaoResposta = new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
+            return Response.ok(transacaoResposta).build();
+        } finally {
+            lock.unlock();
         }
-
-        entityManager.persist(transacao);
-        cliente.atualizaSaldo(transacao.getValor(), transacaoRequisicao.tipo());
-        entityManager.persist(cliente);
-        var transacaoResposta = new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
-        return Response.ok(transacaoResposta).build();
     }
 
     @GET

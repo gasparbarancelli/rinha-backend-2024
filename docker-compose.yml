@@ -16,8 +16,6 @@ services:
         limits:
           cpus: "0.4"
           memory: "125MB"
-    logging:
-      driver: none
 
   api2:
     container_name: api2
@@ -35,8 +33,6 @@ services:
         limits:
           cpus: "0.4"
           memory: "125MB"
-    logging:
-      driver: none
 
   envoy:
     container_name: envoy
@@ -53,9 +49,21 @@ services:
       - api2
     ports:
       - "9999:9999"
-    logging:
-      driver: none
     command: ["envoy", "-c", "/etc/envoy/envoy.yaml"]
+
+
+  redis:
+    container_name: redis
+    image: redis
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --requirepass rinhaBackend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: "50MB"
 
   db:
     container_name: db
@@ -66,16 +74,14 @@ services:
       - POSTGRES_DB=rinha-backend
     ports:
       - '5432:5432'
-    command: ["postgres", "-c", "logging_collector=false", "-c", "max_connections=30"]
+    command: 'postgres -c max_connections=1000 -c shared_buffers=128MB -c synchronous_commit=off -c fsync=off -c full_page_writes=off'
     volumes:
       - ./import.sql:/docker-entrypoint-initdb.d/script.sql
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "200MB"
-    logging:
-      driver: none
+          cpus: "0.4"
+          memory: "150MB"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
       interval: 5s
