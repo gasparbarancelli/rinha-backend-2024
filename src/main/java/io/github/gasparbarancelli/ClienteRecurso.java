@@ -3,12 +3,11 @@ package io.github.gasparbarancelli;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.io.RandomAccessFile;
 import java.time.LocalDateTime;
 
 @Path("/clientes")
@@ -17,10 +16,12 @@ public class ClienteRecurso {
     @Inject
     EntityManager entityManager;
 
+    @Inject
+    ClienteService clienteService;
+
     @POST
     @Path("/{id}/transacoes")
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional(Transactional.TxType.REQUIRED)
     @RunOnVirtualThread
     public Response debitoCredito(@PathParam("id") int id, TransacaoRequisicao transacaoRequisicao) {
         if (Cliente.naoExiste(id)) {
@@ -31,19 +32,20 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
-        var transacao = transacaoRequisicao.geraTransacao(id);
+        String fileName = String.format("/app/cliente-%d.txt", id);
+        try (var file = new RandomAccessFile(fileName, "rw");
+             var channel = file.getChannel()) {
+            var lock = channel.lock();
 
-        if (TipoTransacao.d.equals(transacaoRequisicao.tipo())
-                && cliente.getSaldoComLimite() < transacao.getValor()) {
+            var transacao = transacaoRequisicao.geraTransacao(id);
+            var transacaoResposta = clienteService.exefutarTransacao(transacao);
+
+            lock.release();
+
+            return Response.ok(transacaoResposta).build();
+        } catch (Exception e) {
             return Response.status(422).build();
         }
-
-        entityManager.persist(transacao);
-        cliente.atualizaSaldo(transacao.getValor(), transacaoRequisicao.tipo());
-        entityManager.persist(cliente);
-        var transacaoResposta = new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
-        return Response.ok(transacaoResposta).build();
     }
 
     @GET
