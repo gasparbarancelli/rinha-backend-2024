@@ -1,5 +1,6 @@
 package io.github.gasparbarancelli;
 
+import com.coditory.sherlock.DistributedLock;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -7,9 +8,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.time.LocalDateTime;
 
 @Path("/clientes")
@@ -21,17 +19,9 @@ public class ClienteRecurso {
     @Inject
     ClienteService clienteService;
 
-    public ClienteRecurso() {
-        try {
-            for (int i = 1; i <= 5; i++) {
-                var fileName = String.format("/work/cliente-%d.txt", i);
-                var file = new File(fileName);
-                file.createNewFile();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    @Inject
+    DistributedLock lock;
+
 
     @POST
     @Path("/{id}/transacoes")
@@ -46,19 +36,15 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        String fileName = String.format("/work/cliente-%d.txt", id);
-        try (var file = new RandomAccessFile(fileName, "rw");
-             var channel = file.getChannel()) {
-            var lock = channel.lock();
-
+        try {
+            lock.acquire();
             var transacao = transacaoRequisicao.geraTransacao(id);
             var transacaoResposta = clienteService.exefutarTransacao(transacao);
-
-            lock.release();
-
             return Response.ok(transacaoResposta).build();
         } catch (Exception e) {
             return Response.status(422).build();
+        } finally {
+            lock.release();
         }
     }
 

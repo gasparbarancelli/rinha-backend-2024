@@ -50,6 +50,11 @@ services:
       - api2
     command: ["envoy", "-c", "/etc/envoy/envoy.yaml"]
 
+  mongodb:
+    container_name: mongodb
+    image: mongo
+    network_mode: host
+
   db:
     container_name: db
     image: postgres:latest
