@@ -24,7 +24,7 @@ public class ClienteRecurso {
     public ClienteRecurso() {
         try {
             for (int i = 1; i <= 5; i++) {
-                var fileName = String.format("/app/cliente-%d.txt", i);
+                var fileName = String.format("/work/cliente-%d.txt", i);
                 var file = new File(fileName);
                 file.createNewFile();
             }
@@ -46,7 +46,7 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        String fileName = String.format("/app/cliente-%d.txt", id);
+        String fileName = String.format("/work/cliente-%d.txt", id);
         try (var file = new RandomAccessFile(fileName, "rw");
              var channel = file.getChannel()) {
             var lock = channel.lock();

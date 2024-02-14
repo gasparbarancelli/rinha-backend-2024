@@ -2,13 +2,15 @@ services:
 
   api1:
     container_name: api1
-    image: gasparbarancelli/rinha-backend-2024:latest
+    image: gasparbarancelli/rinha-backend-2024-file-lock:latest
     network_mode: host
     environment:
       - QUARKUS_HTTP_PORT=8081
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - app-data:/work
     deploy:
       resources:
         limits:
@@ -17,13 +19,15 @@ services:
 
   api2:
     container_name: api2
-    image: gasparbarancelli/rinha-backend-2024:latest
+    image: gasparbarancelli/rinha-backend-2024-file-lock:latest
     network_mode: host
     environment:
       - QUARKUS_HTTP_PORT=8082
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - app-data:/work
     deploy:
       resources:
         limits:
@@ -68,3 +72,7 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
+
+volumes:
+  app-data:
+    driver: local
