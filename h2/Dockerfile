@@ -1,19 +1,18 @@
-FROM eclipse-temurin:21.0.2_13-jdk-jammy
+FROM registry.access.redhat.com/ubi9-minimal:9.2 AS ubi
+# -- Stage scratch
+FROM registry.access.redhat.com/ubi9-micro:9.2 AS scratch
+# -- Final Stage
+FROM scratch
+COPY --from=ubi /usr/lib64/libgcc_s.so.1 /usr/lib64/libgcc_s.so.1
+COPY --from=ubi /usr/lib64/libstdc++.so.6 /usr/lib64/libstdc++.so.6
+COPY --from=ubi /usr/lib64/libz.so.1 /usr/lib64/libz.so.1
 
-ENV H2_ZIP https://github.com/h2database/h2database/releases/download/version-2.2.224/h2-2023-09-17.zip
-ENV H2_PORT 9092
-ENV H2_CONSOLE_PORT 8082
-ENV H2_DATA /var/lib/h2
+WORKDIR /work/
+RUN chown 1001 /work \
+    && chmod "g+rwX" /work \
+    && chown 1001:root /work
+COPY --chown=1001:root application /work/application
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y unzip && \
-    wget ${H2_ZIP} && unzip -q h2-2023-09-17.zip -d /opt/ && \
-    mkdir ${H2_DATA}
+USER 1001
 
-EXPOSE ${H2_PORT} ${H2_CONSOLE_PORT}
-
-WORKDIR ${H2_DATA}
-
-CMD java -XX:CompileThreshold=1 -XX:MaxRAMPercentage=75 -XX:ActiveProcessorCount=2 -XX:+UseParallelGC -cp /opt/h2/bin/h2*.jar org.h2.tools.Server \
-    -baseDir ${H2_DATA} -ifNotExists \
-    -tcp -tcpAllowOthers -tcpPort ${H2_PORT} \
-    -web -webAllowOthers -webPort ${H2_CONSOLE_PORT}
+CMD ["/bin/bash", "-c", "./application -baseDir /work -ifNotExists -tcp -tcpAllowOthers -tcpPort 9092 -web -webAllowOthers -webPort 8082"]
