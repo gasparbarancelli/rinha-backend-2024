@@ -5,7 +5,6 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.ParameterMode;
 import jakarta.persistence.StoredProcedureQuery;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -21,7 +20,6 @@ public class ClienteRecurso {
     @POST
     @Path("/{id}/transacoes")
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional(Transactional.TxType.REQUIRED)
     @RunOnVirtualThread
     public Response debitoCredito(@PathParam("id") int id, TransacaoRequisicao transacaoRequisicao) {
         if (Cliente.naoExiste(id)) {
@@ -33,7 +31,6 @@ public class ClienteRecurso {
         }
 
         var transacao = transacaoRequisicao.geraTransacao(id);
-
 
         try {
             StoredProcedureQuery storedProcedure = entityManager.createStoredProcedureQuery("efetuar_transacao")
