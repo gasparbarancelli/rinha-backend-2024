@@ -35,13 +35,12 @@ AS $$
 DECLARE
     cliente cliente%rowtype;
     novoSaldo int;
-    numeroLinhasAfetadas int;
 BEGIN
 
     IF tipoParam = 'd' THEN
-            novoSaldo := valorParam * -1;
+        novoSaldo := valorParam * -1;
     ELSE
-            novoSaldo := valorParam;
+        novoSaldo := valorParam;
     END IF;
 
     UPDATE cliente
@@ -50,10 +49,8 @@ BEGIN
     AND (novoSaldo > 0 OR limite * -1 <= saldo + novoSaldo)
     RETURNING * INTO cliente;
 
-    GET DIAGNOSTICS numeroLinhasAfetadas = ROW_COUNT;
-
-    IF numeroLinhasAfetadas = 0 THEN
-        RAISE EXCEPTION 'Cliente nao possui limite';
+    IF NOT FOUND THEN
+            RAISE EXCEPTION 'Cliente não possui limite';
     END IF;
 
     INSERT INTO transacao (cliente_id, valor, tipo, descricao, data)
