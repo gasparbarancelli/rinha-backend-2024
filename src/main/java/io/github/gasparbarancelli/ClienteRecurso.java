@@ -3,7 +3,8 @@ package io.github.gasparbarancelli;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
+import jakarta.persistence.ParameterMode;
+import jakarta.persistence.StoredProcedureQuery;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -31,19 +32,30 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
         var transacao = transacaoRequisicao.geraTransacao(id);
 
-        if (TipoTransacao.d.equals(transacaoRequisicao.tipo())
-                && cliente.getSaldoComLimite() < transacao.getValor()) {
+
+        try {
+            StoredProcedureQuery storedProcedure = entityManager.createStoredProcedureQuery("efetuar_transacao")
+                .registerStoredProcedureParameter("clienteIdParam", Integer.class, ParameterMode.IN)
+                .registerStoredProcedureParameter("tipoParam", String.class, ParameterMode.IN)
+                .registerStoredProcedureParameter("valorParam", Integer.class, ParameterMode.IN)
+                .registerStoredProcedureParameter("descricaoParam", String.class, ParameterMode.IN)
+                .registerStoredProcedureParameter("saldoRetorno", Integer.class, ParameterMode.OUT)
+                .registerStoredProcedureParameter("limiteRetorno", Integer.class, ParameterMode.OUT)
+                .setParameter("clienteIdParam", transacao.getCliente())
+                .setParameter("tipoParam", transacao.getTipo().name())
+                .setParameter("valorParam", transacao.getValor())
+                .setParameter("descricaoParam", transacao.getDescricao());
+
+            storedProcedure.execute();
+            var limite = (Integer) storedProcedure.getOutputParameterValue("limiteRetorno");
+            var saldo = (Integer) storedProcedure.getOutputParameterValue("saldoRetorno");
+            var transacaoResposta = new TransacaoResposta(limite, saldo);
+            return Response.ok(transacaoResposta).build();
+        } catch (Exception e) {
             return Response.status(422).build();
         }
-
-        entityManager.persist(transacao);
-        cliente.atualizaSaldo(transacao.getValor(), transacaoRequisicao.tipo());
-        entityManager.persist(cliente);
-        var transacaoResposta = new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
-        return Response.ok(transacaoResposta).build();
     }
 
     @GET
