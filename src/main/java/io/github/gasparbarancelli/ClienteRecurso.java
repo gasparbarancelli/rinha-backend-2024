@@ -31,10 +31,13 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
+        var cliente = TipoTransacao.d.equals(transacaoRequisicao.tipo())
+                ? entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE)
+                : entityManager.find(Cliente.class, id);
+
         var transacao = transacaoRequisicao.geraTransacao(id);
 
-        if (TipoTransacao.d.equals(transacaoRequisicao.tipo())
+        if (TipoTransacao.d.equals(transacao.getTipo())
                 && cliente.getSaldoComLimite() < transacao.getValor()) {
             return Response.status(422).build();
         }
