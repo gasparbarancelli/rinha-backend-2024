@@ -10,12 +10,24 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Path("/clientes")
 public class ClienteRecurso {
 
     @Inject
     EntityManager entityManager;
+
+    private final Map<Integer, Lock> locks = new HashMap<>(5);
+
+    public ClienteRecurso() {
+        for (int i = 1; i <= 5; i++) {
+            locks.put(i, new ReentrantLock());
+        }
+    }
 
     @POST
     @Path("/{id}/transacoes")
@@ -31,22 +43,25 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        var cliente = TipoTransacao.d.equals(transacaoRequisicao.tipo())
-                ? entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE)
-                : entityManager.find(Cliente.class, id);
+        Lock lock = locks.get(id);
+        lock.lock();
+        try {
+            var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
+            var transacao = transacaoRequisicao.geraTransacao(id);
 
-        var transacao = transacaoRequisicao.geraTransacao(id);
+            if (TipoTransacao.d.equals(transacao.getTipo())
+                    && cliente.getSaldoComLimite() < transacao.getValor()) {
+                return Response.status(422).build();
+            }
 
-        if (TipoTransacao.d.equals(transacao.getTipo())
-                && cliente.getSaldoComLimite() < transacao.getValor()) {
-            return Response.status(422).build();
+            entityManager.persist(transacao);
+            cliente.atualizaSaldo(transacao.getValor(), transacaoRequisicao.tipo());
+            entityManager.persist(cliente);
+            var transacaoResposta = new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
+            return Response.ok(transacaoResposta).build();
+        } finally {
+            lock.unlock();
         }
-
-        entityManager.persist(transacao);
-        cliente.atualizaSaldo(transacao.getValor(), transacaoRequisicao.tipo());
-        entityManager.persist(cliente);
-        var transacaoResposta = new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
-        return Response.ok(transacaoResposta).build();
     }
 
     @GET
