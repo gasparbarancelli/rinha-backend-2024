@@ -46,7 +46,9 @@ public class ClienteRecurso {
         Lock lock = locks.get(id);
         lock.lock();
         try {
-            var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
+            var cliente = TipoTransacao.d.equals(transacaoRequisicao.tipo())
+                ? entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE)
+                : entityManager.find(Cliente.class, id);
             var transacao = transacaoRequisicao.geraTransacao(id);
 
             if (TipoTransacao.d.equals(transacao.getTipo())
