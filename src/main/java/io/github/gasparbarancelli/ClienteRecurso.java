@@ -3,7 +3,6 @@ package io.github.gasparbarancelli;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -20,6 +19,9 @@ public class ClienteRecurso {
 
     @Inject
     EntityManager entityManager;
+
+    @Inject
+    ClienteService clienteService;
 
     private final Map<Integer, Lock> locks = new HashMap<>(5);
 
@@ -46,21 +48,21 @@ public class ClienteRecurso {
         Lock lock = locks.get(id);
         lock.lock();
         try {
-            var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
             var transacao = transacaoRequisicao.geraTransacao(id);
-
-            if (TipoTransacao.d.equals(transacao.getTipo())
-                    && cliente.getSaldoComLimite() < transacao.getValor()) {
-                return Response.status(422).build();
-            }
-
-            entityManager.persist(transacao);
-            cliente.atualizaSaldo(transacao.getValor(), transacaoRequisicao.tipo());
-            entityManager.persist(cliente);
-            var transacaoResposta = new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
-            return Response.ok(transacaoResposta).build();
+            return efetuarTransacao(transacao);
         } finally {
             lock.unlock();
+        }
+    }
+
+    private Response efetuarTransacao(Transacao transacao) {
+        try {
+            var transacaoResposta = clienteService.efetuarTransacao(transacao);
+            return Response.ok(transacaoResposta).build();
+        } catch (ClienteLimiteException e) {
+            return Response.status(422).build();
+        } catch (Exception e) {
+            return efetuarTransacao(transacao);
         }
     }
 

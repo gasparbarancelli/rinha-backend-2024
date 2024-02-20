@@ -19,6 +19,9 @@ public class Cliente {
 
     private int saldo;
 
+    @Version
+    private Integer version;
+
     public Cliente() {
     }
 
