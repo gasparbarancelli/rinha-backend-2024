@@ -23,10 +23,6 @@ public class ClienteRecurso {
     @Transactional(Transactional.TxType.REQUIRED)
     @RunOnVirtualThread
     public Response debitoCredito(@PathParam("id") int id, TransacaoRequisicao transacaoRequisicao) {
-        if (Cliente.naoExiste(id)) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
         var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
         var transacao = transacaoRequisicao.geraTransacao(id);
 
@@ -35,9 +31,10 @@ public class ClienteRecurso {
             return Response.status(422).build();
         }
 
-        entityManager.persist(transacao);
         cliente.atualizaSaldo(transacao.getValor(), transacaoRequisicao.tipo());
+        entityManager.persist(transacao);
         entityManager.persist(cliente);
+
         var transacaoResposta = new TransacaoResposta(cliente.getLimite(), cliente.getSaldo());
         return Response.ok(transacaoResposta).build();
     }
@@ -47,10 +44,6 @@ public class ClienteRecurso {
     @Produces(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
     public Response extrato(@PathParam("id") int id) {
-        if (Cliente.naoExiste(id)) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
         var cliente = entityManager.find(Cliente.class, id);
         var transacoes = entityManager.createQuery(
                 """

@@ -11,7 +11,7 @@ public record TransacaoRequisicao(
 
     public TransacaoRequisicao {
         if (!Valida.valor.test(valor) || tipo == null || !Valida.descricao.test(descricao)) {
-            throw new IllegalArgumentException();
+            throw new RuntimeException();
         }
     }
 

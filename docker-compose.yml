@@ -49,7 +49,9 @@ services:
   db:
     container_name: db
     image: postgres:latest
-    network_mode: host
+    #network_mode: host
+    ports:
+      - 5432:5432
     environment:
       - POSTGRES_PASSWORD=backend
       - POSTGRES_USER=rinha
