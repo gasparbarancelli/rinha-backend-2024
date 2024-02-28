@@ -13,7 +13,7 @@ services:
       resources:
         limits:
           cpus: "0.35"
-          memory: "90MB"
+          memory: "110MB"
 
   api2:
     container_name: api2
@@ -28,7 +28,7 @@ services:
       resources:
         limits:
           cpus: "0.35"
-          memory: "90MB"
+          memory: "110MB"
 
   envoy:
     container_name: envoy
@@ -49,9 +49,7 @@ services:
   db:
     container_name: db
     image: postgres:latest
-    #network_mode: host
-    ports:
-      - 5432:5432
+    network_mode: host
     environment:
       - POSTGRES_PASSWORD=backend
       - POSTGRES_USER=rinha
@@ -63,7 +61,7 @@ services:
       resources:
         limits:
           cpus: "0.6"
-          memory: "320MB"
+          memory: "280MB"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
       interval: 5s
