@@ -9,10 +9,10 @@ public record TransacaoRequisicao(
         String descricao
 ) {
 
-    public boolean ehValido() {
-        return Valida.valor.test(valor)
-                && tipo != null
-                && Valida.descricao.test(descricao);
+    public TransacaoRequisicao {
+        if (!Valida.valor.test(valor) || tipo == null || !Valida.descricao.test(descricao)) {
+            throw new IllegalArgumentException();
+        }
     }
 
     public Transacao geraTransacao(int cliente) {
