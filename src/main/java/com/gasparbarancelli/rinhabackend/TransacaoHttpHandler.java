@@ -19,7 +19,7 @@ public class TransacaoHttpHandler implements HttpHandler {
         var split = path.split("/");
         var id = Integer.parseInt(split[2]);
 
-        if (Cliente.naoExiste(id)) {
+        if (id < 1 || id > 5) {
             exchange.sendResponseHeaders(404, 0);
             exchange.close();
             return;

@@ -6,8 +6,4 @@ public record Cliente(
         int saldo
 ) {
 
-    public static boolean naoExiste(int id) {
-        return id < 1 || id > 5;
-    }
-
 }
