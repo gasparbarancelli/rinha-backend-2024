@@ -3,7 +3,9 @@
 
 ## Rinha de Backend 2024
 
-Aplicação desenvolvida em Quarkus com VirtualThreads, compilando imagem nativa utilizando a GraalVM, utilizando o Postgres cmo banco de dados e o Envou como proxy.
+Aplicação desenvolvida em Quarkus com VirtualThreads, compilando imagem nativa utilizando a GraalVM, utilizando o Postgres como banco de dados e o Nginx como proxy.
+
+Nessa versão eu não utilizei bloqueio pessimista, fiz a operação tudo em uma procedure fazendo o update no saldo do cliente validando o limite.
 
 
 ##### BUILD
