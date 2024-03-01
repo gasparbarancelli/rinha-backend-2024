@@ -1,7 +1,6 @@
 package io.github.gasparbarancelli;
 
 import io.smallrye.common.annotation.RunOnVirtualThread;
-import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -24,14 +23,6 @@ public class ClienteRecurso {
     @Transactional(Transactional.TxType.REQUIRED)
     @RunOnVirtualThread
     public Response debitoCredito(@PathParam("id") int id, TransacaoRequisicao transacaoRequisicao) {
-        if (Cliente.naoExiste(id)) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        if (!transacaoRequisicao.ehValido()) {
-            return Response.status(422).build();
-        }
-
         var cliente = entityManager.find(Cliente.class, id, LockModeType.PESSIMISTIC_WRITE);
         var transacao = transacaoRequisicao.geraTransacao(id);
 
