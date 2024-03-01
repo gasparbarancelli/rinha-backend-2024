@@ -10,7 +10,7 @@ public record TransacaoRequisicao(
 ) {
 
     public TransacaoRequisicao {
-        if (!Valida.valor.test(valor) || tipo == null || !Valida.descricao.test(descricao)) {
+        if (!Valida.valor.test(valor) || !Valida.tipo.test(tipo) || !Valida.descricao.test(descricao)) {
             throw new RuntimeException();
         }
     }

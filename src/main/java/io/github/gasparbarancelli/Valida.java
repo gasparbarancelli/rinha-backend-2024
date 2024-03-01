@@ -21,6 +21,8 @@ public class Valida {
         }
     };
 
+    public static Predicate<TipoTransacao> tipo = Objects::nonNull;
+
     public static Predicate<String> descricao = (descricao) ->
             Objects.nonNull(descricao)
             && !descricao.isEmpty()
