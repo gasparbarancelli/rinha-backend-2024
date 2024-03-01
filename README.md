@@ -26,8 +26,5 @@ https://twitter.com/gasparbjr
 https://br.linkedin.com/in/gaspar-barancelli-junior-77681881
 
 
-Compilar imagem nativa
-
-
 
 
