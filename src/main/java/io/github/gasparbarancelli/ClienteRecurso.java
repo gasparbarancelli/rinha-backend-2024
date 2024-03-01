@@ -22,17 +22,8 @@ public class ClienteRecurso {
     @Produces(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
     public Response debitoCredito(@PathParam("id") int id, TransacaoRequisicao transacaoRequisicao) {
-        if (Cliente.naoExiste(id)) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        if (!transacaoRequisicao.ehValido()) {
-            return Response.status(422).build();
-        }
-
-        var transacao = transacaoRequisicao.geraTransacao(id);
-
         try {
+            var transacao = transacaoRequisicao.geraTransacao(id);
             StoredProcedureQuery storedProcedure = entityManager.createStoredProcedureQuery("efetuar_transacao")
                 .registerStoredProcedureParameter("clienteIdParam", Integer.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("tipoParam", String.class, ParameterMode.IN)

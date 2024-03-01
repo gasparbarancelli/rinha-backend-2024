@@ -30,18 +30,6 @@ public class Cliente {
         return saldo;
     }
 
-    public void atualizaSaldo(int valor, TipoTransacao tipoTransacao) {
-        if (TipoTransacao.d.equals(tipoTransacao)) {
-            saldo = saldo - valor;
-        } else {
-            saldo = saldo + valor;
-        }
-    }
-
-    public int getSaldoComLimite() {
-        return saldo + limite;
-    }
-
     public static boolean naoExiste(int id) {
         return id < 1 || id > 5;
     }
