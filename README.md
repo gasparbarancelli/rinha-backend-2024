@@ -15,6 +15,6 @@ docker build -f src/main/docker/Dockerfile.native-micro -t gasparbarancelli/rinh
 
 ##### Repositorio Oficial
 
-https://github.com/gasparbarancelli/rinha-backend-2024
+https://github.com/gasparbarancelli/rinha-backend-2024/tree/feature/nginx
 https://twitter.com/gasparbjr
 https://br.linkedin.com/in/gaspar-barancelli-junior-77681881
