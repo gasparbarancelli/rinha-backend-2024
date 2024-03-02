@@ -46,18 +46,26 @@ services:
           memory: "50MB"
 
   db:
-    image: cockroachdb/cockroach:latest
-    command: start-single-node --insecure
+    image: mysql:latest
+    container_name: db
+    restart: always
     environment:
-      - COCKROACH_DATABASE=rinha
-    network_mode: host
+      MYSQL_ROOT_PASSWORD: backend
+      MYSQL_DATABASE: rinha
+      MYSQL_USER: rinha
+      MYSQL_PASSWORD: backend
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./import.sql:/docker-entrypoint-initdb.d/import.sql
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/health?ready=1" ]
-      interval: 3s
-      timeout: 3s
-      retries: 5
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 10s
+      retries: 3
     deploy:
       resources:
         limits:
           cpus: "0.6"
           memory: "300MB"
+

@@ -7,7 +7,7 @@ Aplicação desenvolvida em Java compilada para código de máquina com a GraalV
 
 Inicialmente estava utilizando a lib do gson, depois mudei para a jackson, mas removendo a lib e fazendo o parse manualmente, melhorei a performance.
 
-Utilizei o banco de dados H2, onde compilei o mesmo para código de máquina com a GraalVM.
+Utilizei o banco de dados Mysql com a engine MyISAM.
 
 Para proxy fiz testes com o HAProxy, Envoy e Nginx o qual teve melhor performance.
 

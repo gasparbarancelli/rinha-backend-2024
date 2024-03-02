@@ -19,56 +19,13 @@ public class DataSource {
                 .orElse("localhost");
 
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://" + host + ":26257/rinha?loggerLevel=OFF");
-        config.setUsername("root");
-        config.setPassword("");
+        config.setJdbcUrl("jdbc:mysql://" + host + ":3306/rinha");
+        config.setUsername("rinha");
+        config.setPassword("backend");
         config.setMinimumIdle(5);
         config.setMaximumPoolSize(5);
 
         hikariDataSource = new HikariDataSource(config);
-        init();
-    }
-
-    private void init() {
-        var createDatabase = Optional.ofNullable(System.getenv("CREATE_DATABASE"))
-                .map(Boolean::valueOf)
-                .orElse(true);
-        if (createDatabase) {
-            try (var con = hikariDataSource.getConnection();
-                 var statement = con.createStatement()) {
-                statement.execute("""
-                        CREATE TABLE IF NOT EXISTS public.CLIENTE (
-                             ID INT NOT NULL,
-                             LIMITE INT NOT NULL,
-                             SALDO INT NOT NULL DEFAULT 0,
-                             PRIMARY KEY (ID)
-                         );
-                        """);
-
-                statement.execute("""
-                        CREATE TABLE IF NOT EXISTS public.TRANSACAO (
-                             ID SERIAL PRIMARY KEY,
-                             CLIENTE_ID INT NOT NULL,
-                             VALOR INT NOT NULL,
-                             TIPO CHAR(1) NOT NULL,
-                             DESCRICAO VARCHAR(10) NOT NULL,
-                             DATA TIMESTAMP NOT NULL
-                         );""");
-
-                statement.execute("CREATE INDEX IF NOT EXISTS IDX_TRANSACAO_CLIENTE ON public.TRANSACAO (CLIENTE_ID);");
-
-                statement.execute("""
-                        INSERT INTO public.CLIENTE (ID, LIMITE)
-                               VALUES (1, 100000),
-                                      (2, 80000),
-                                      (3, 1000000),
-                                      (4, 10000000),
-                                      (5, 500000);
-                        """);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     public ExtratoResposta extrato(int clienteId) {
@@ -149,7 +106,7 @@ public class DataSource {
         try (var con = hikariDataSource.getConnection()) {
             if (transacao.ehDebito()) {
                 String sqlClienteUpdateDebito = """
-                        UPDATE cliente SET saldo = saldo - ? WHERE id = ? AND limite * -1 <= saldo - ?
+                        UPDATE CLIENTE SET SALDO = SALDO - ? WHERE ID = ? AND LIMITE * -1 <= SALDO - ?
                         """;
                 try (var stmtUpdate = con.prepareStatement(sqlClienteUpdateDebito)) {
                     stmtUpdate.setInt(1, transacao.valor());
@@ -161,7 +118,7 @@ public class DataSource {
                     }
                 }
             } else {
-                String sqlClienteUpdateCredito = "UPDATE cliente SET saldo = saldo + ? WHERE id = ?";
+                String sqlClienteUpdateCredito = "UPDATE CLIENTE SET SALDO = SALDO + ? WHERE ID = ?";
                 try (var stmtUpdate = con.prepareStatement(sqlClienteUpdateCredito)) {
                     stmtUpdate.setInt(1, transacao.valor());
                     stmtUpdate.setInt(2, transacao.cliente());
@@ -169,7 +126,7 @@ public class DataSource {
                 }
             }
             String sqlInsertTransacao = """
-                     INSERT INTO transacao (cliente_id, valor, tipo, descricao, data)
+                     INSERT INTO TRANSACAO (CLIENTE_ID, VALOR, TIPO, DESCRICAO, DATA)
                         VALUES (?, ?, ?, ?, current_timestamp)
                     """;
             try (var stmtInsert = con.prepareStatement(sqlInsertTransacao)) {
