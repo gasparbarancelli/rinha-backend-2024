@@ -19,9 +19,9 @@ public class DataSource {
                 .orElse("localhost");
 
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:h2:tcp://" + host + ":9092/rinha-backend");
-        config.setUsername("sa");
-        config.setPassword("");
+        config.setJdbcUrl("jdbc:postgresql://" + host + ":26257/rinha?loggerLevel=OFF");
+        config.setUsername("rinha");
+        config.setPassword("backend");
         config.setMinimumIdle(5);
         config.setMaximumPoolSize(5);
 
@@ -32,37 +32,38 @@ public class DataSource {
     private void init() {
         var createDatabase = Optional.ofNullable(System.getenv("CREATE_DATABASE"))
                 .map(Boolean::valueOf)
-                .orElse(false);
+                .orElse(true);
         if (createDatabase) {
             try (var con = hikariDataSource.getConnection();
                  var statement = con.createStatement()) {
                 statement.execute("""
-                        CREATE TABLE public.CLIENTE (
-                            ID INT PRIMARY KEY,
-                            LIMITE INT,
-                            SALDO INT DEFAULT 0
-                        )
+                        CREATE TABLE IF NOT EXISTS public.CLIENTE (
+                             ID INT NOT NULL,
+                             LIMITE INT NOT NULL,
+                             SALDO INT NOT NULL DEFAULT 0,
+                             PRIMARY KEY (ID)
+                         );
                         """);
 
                 statement.execute("""
-                        CREATE TABLE public.TRANSACAO (
-                            ID INT AUTO_INCREMENT PRIMARY KEY,
-                            CLIENTE_ID INT NOT NULL,
-                            VALOR INT NOT NULL,
-                            TIPO CHAR(1) NOT NULL,
-                            DESCRICAO VARCHAR(10) NOT NULL,
-                            DATA TIMESTAMP NOT NULL
-                        )""");
+                        CREATE TABLE IF NOT EXISTS public.TRANSACAO (
+                             ID SERIAL PRIMARY KEY,
+                             CLIENTE_ID INT NOT NULL,
+                             VALOR INT NOT NULL,
+                             TIPO CHAR(1) NOT NULL,
+                             DESCRICAO VARCHAR(10) NOT NULL,
+                             DATA TIMESTAMP NOT NULL
+                         );""");
 
-                statement.execute("CREATE INDEX IDX_TRANSACAO_CLIENTE ON TRANSACAO (CLIENTE_ID ASC)");
+                statement.execute("CREATE INDEX IF NOT EXISTS IDX_TRANSACAO_CLIENTE ON public.TRANSACAO (CLIENTE_ID);");
 
                 statement.execute("""
                         INSERT INTO public.CLIENTE (ID, LIMITE)
-                        VALUES (1, 100000),
-                               (2, 80000),
-                               (3, 1000000),
-                               (4, 10000000),
-                               (5, 500000);
+                               VALUES (1, 100000),
+                                      (2, 80000),
+                                      (3, 1000000),
+                                      (4, 10000000),
+                                      (5, 500000);
                         """);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
