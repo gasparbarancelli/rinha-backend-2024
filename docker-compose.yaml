@@ -54,8 +54,7 @@ services:
       MYSQL_DATABASE: rinha
       MYSQL_USER: rinha
       MYSQL_PASSWORD: backend
-    ports:
-      - "3306:3306"
+    network_mode: host
     volumes:
       - ./import.sql:/docker-entrypoint-initdb.d/import.sql
     healthcheck:
