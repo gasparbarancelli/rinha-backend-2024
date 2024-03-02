@@ -9,4 +9,9 @@ public record Transacao(
         String descricao,
         LocalDateTime data
 ) {
+
+    public boolean ehDebito() {
+        return TipoTransacao.d.equals(tipo);
+    }
+
 }

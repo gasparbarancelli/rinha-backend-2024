@@ -3,9 +3,7 @@ package com.gasparbarancelli.rinhabackend;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,22 +13,6 @@ import java.util.Optional;
 public class DataSource {
 
     private final HikariDataSource hikariDataSource;
-
-    private final String SQL_CLIENTE_FIND_BY_ID = """
-                SELECT LIMITE, SALDO
-                FROM CLIENTE
-                WHERE id = ?
-            """;
-
-    private final String SQL_TRANSACAO_FIND = """
-                SELECT VALOR, TIPO, DESCRICAO, DATA
-                FROM TRANSACAO
-                WHERE CLIENTE_ID = ?
-                ORDER BY DATA DESC
-                LIMIT 10;
-            """;
-
-    private final String SQL_INSERT_TRANSACAO = "SELECT saldoRetorno, limiteRetorno FROM efetuar_transacao(?, ?, ?, ?)";
 
     public DataSource() {
         var host = Optional.ofNullable(System.getenv("DATABASE_HOST"))
@@ -48,11 +30,9 @@ public class DataSource {
     }
 
     public ExtratoResposta extrato(int clienteId) {
-        try (var con = hikariDataSource.getConnection();
-             var stmtFindCliente = con.prepareStatement(SQL_CLIENTE_FIND_BY_ID);
-             var stmtFindTransacoes = con.prepareStatement(SQL_TRANSACAO_FIND)) {
-            var cliente = getCliente(clienteId, stmtFindCliente);
-            var transacoes = getTransacoes(clienteId, stmtFindTransacoes);
+        try (var con = hikariDataSource.getConnection()) {
+            var cliente = getCliente(con, clienteId);
+            var transacoes = getTransacoes(con, clienteId);
 
             var saldo = new ExtratoSaldoResposta(
                     cliente.saldo(),
@@ -69,60 +49,99 @@ public class DataSource {
         }
     }
 
-    private Cliente getCliente(int clienteId, PreparedStatement statement) throws SQLException {
-        statement.setObject(1, clienteId);
-        try (var resultSet = statement.executeQuery()) {
-            resultSet.next();
+    private Cliente getCliente(Connection con, int clienteId) throws SQLException {
+        String sqlClienteFindById = """
+                    SELECT LIMITE, SALDO
+                    FROM CLIENTE
+                    WHERE id = ?
+                """;
+        try (var statement = con.prepareStatement(sqlClienteFindById)) {
+            statement.setInt(1, clienteId);
+            try (var resultSet = statement.executeQuery()) {
+                resultSet.next();
 
-            var limite = resultSet.getInt(1);
-            var saldo = resultSet.getInt(2);
+                var limite = resultSet.getInt(1);
+                var saldo = resultSet.getInt(2);
 
-            return new Cliente(
-                    clienteId,
-                    limite,
-                    saldo
-            );
+                return new Cliente(
+                        clienteId,
+                        limite,
+                        saldo
+                );
+            }
         }
     }
 
-    private List<ExtratoTransacaoResposta> getTransacoes(int clienteId, PreparedStatement statement) throws SQLException {
-        statement.setObject(1, clienteId);
-        try (var resultSet = statement.executeQuery()) {
-            List<ExtratoTransacaoResposta> transacoes = new ArrayList<>(resultSet.getFetchSize());
-            while (resultSet.next()) {
-                var valor = resultSet.getInt(1);
-                var tipo = resultSet.getString(2);
-                var descricao = resultSet.getString(3);
-                var data = resultSet.getTimestamp(4);
+    private List<ExtratoTransacaoResposta> getTransacoes(Connection con, int clienteId) throws SQLException {
+        String sqlTransacaoFind = """
+                    SELECT VALOR, TIPO, DESCRICAO, DATA
+                    FROM TRANSACAO
+                    WHERE CLIENTE_ID = ?
+                    ORDER BY DATA DESC
+                    LIMIT 10;
+                """;
+        try (var statement = con.prepareStatement(sqlTransacaoFind)) {
+            statement.setInt(1, clienteId);
+            try (var resultSet = statement.executeQuery()) {
+                List<ExtratoTransacaoResposta> transacoes = new ArrayList<>(resultSet.getFetchSize());
+                while (resultSet.next()) {
+                    var valor = resultSet.getInt(1);
+                    var tipo = resultSet.getString(2);
+                    var descricao = resultSet.getString(3);
+                    var data = resultSet.getTimestamp(4);
 
-                var transacao = new ExtratoTransacaoResposta(
-                        valor,
-                        TipoTransacao.valueOf(tipo),
-                        descricao,
-                        data.toLocalDateTime()
-                );
-                transacoes.add(transacao);
+                    var transacao = new ExtratoTransacaoResposta(
+                            valor,
+                            TipoTransacao.valueOf(tipo),
+                            descricao,
+                            data.toLocalDateTime()
+                    );
+                    transacoes.add(transacao);
+                }
+                return transacoes;
             }
-            return transacoes;
         }
     }
 
     public TransacaoResposta insert(Transacao transacao) throws Exception {
-        try (var con = hikariDataSource.getConnection();
-             CallableStatement statement = con.prepareCall(SQL_INSERT_TRANSACAO)) {
-            statement.setInt(1, transacao.cliente());
-            statement.setString(2, transacao.tipo().name());
-            statement.setInt(3, transacao.valor());
-            statement.setString(4, transacao.descricao());
-            try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                int novoSaldo = resultSet.getInt(1);
-                int limite = resultSet.getInt(2);
-                return new TransacaoResposta(
-                        limite,
-                        novoSaldo
-                );
+        try (var con = hikariDataSource.getConnection()) {
+            if (transacao.ehDebito()) {
+                String sqlClienteUpdateDebito = """
+                        UPDATE cliente SET saldo = saldo - ? WHERE id = ? AND limite * -1 <= saldo - ?
+                        """;
+                try (var stmtUpdate = con.prepareStatement(sqlClienteUpdateDebito)) {
+                    stmtUpdate.setInt(1, transacao.valor());
+                    stmtUpdate.setInt(2, transacao.cliente());
+                    stmtUpdate.setInt(3, transacao.valor());
+                    var count = stmtUpdate.executeUpdate();
+                    if (count == 0) {
+                        throw new Exception("Cliente sem limite");
+                    }
+                }
+            } else {
+                String sqlClienteUpdateCredito = "UPDATE cliente SET saldo = saldo + ? WHERE id = ?";
+                try (var stmtUpdate = con.prepareStatement(sqlClienteUpdateCredito)) {
+                    stmtUpdate.setInt(1, transacao.valor());
+                    stmtUpdate.setInt(2, transacao.cliente());
+                    stmtUpdate.executeUpdate();
+                }
             }
+            String sqlInsertTransacao = """
+                     INSERT INTO transacao (cliente_id, valor, tipo, descricao, data)
+                        VALUES (?, ?, ?, ?, current_timestamp)
+                    """;
+            try (var stmtInsert = con.prepareStatement(sqlInsertTransacao)) {
+                stmtInsert.setInt(1, transacao.cliente());
+                stmtInsert.setInt(2, transacao.valor());
+                stmtInsert.setString(3, transacao.tipo().name());
+                stmtInsert.setString(4, transacao.descricao());
+                stmtInsert.executeUpdate();
+            }
+            var cliente = getCliente(con, transacao.cliente());
+            return new TransacaoResposta(
+                    cliente.limite(),
+                    cliente.saldo()
+            );
         }
     }
 
