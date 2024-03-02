@@ -8,7 +8,8 @@ services:
       - HTTP_PORT=8081
       - CREATE_DATABASE=true
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -46,11 +47,9 @@ services:
 
   db:
     image: cockroachdb/cockroach:latest
-    command: start-single-node
+    command: start-single-node --insecure
     environment:
       - COCKROACH_DATABASE=rinha
-      - COCKROACH_USER=rinha
-      - COCKROACH_PASSWORD=backend
     network_mode: host
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/health?ready=1" ]

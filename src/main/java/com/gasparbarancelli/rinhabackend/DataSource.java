@@ -20,8 +20,8 @@ public class DataSource {
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:postgresql://" + host + ":26257/rinha?loggerLevel=OFF");
-        config.setUsername("rinha");
-        config.setPassword("backend");
+        config.setUsername("root");
+        config.setPassword("");
         config.setMinimumIdle(5);
         config.setMaximumPoolSize(5);
 
