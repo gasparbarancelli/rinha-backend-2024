@@ -50,8 +50,7 @@ services:
       - COCKROACH_DATABASE=rinha
       - COCKROACH_USER=rinha
       - COCKROACH_PASSWORD=backend
-    ports:
-      - "26257:26257"
+    network_mode: host
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/health?ready=1" ]
       interval: 3s
