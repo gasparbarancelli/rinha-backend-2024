@@ -24,7 +24,8 @@ services:
       - HTTP_PORT=8082
       - CREATE_DATABASE=false
     depends_on:
-      - api1
+      db:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -58,9 +59,8 @@ services:
     volumes:
       - ./import.sql:/docker-entrypoint-initdb.d/import.sql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 10s
-      timeout: 10s
+      test: [ "CMD", "mysqladmin", "-urinha", "-pbackend", "ping", "-h", "localhost" ]
+      timeout: 15s
       retries: 3
     deploy:
       resources:
