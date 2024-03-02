@@ -19,14 +19,55 @@ public class DataSource {
                 .orElse("localhost");
 
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://" + host + "/rinha-backend?loggerLevel=OFF");
-        config.setUsername("rinha");
-        config.setPassword("backend");
-        config.setConnectionInitSql("SELECT 1");
+        config.setJdbcUrl("jdbc:h2:tcp://" + host + ":9092/rinha-backend");
+        config.setUsername("sa");
+        config.setPassword("");
         config.setMinimumIdle(5);
         config.setMaximumPoolSize(5);
 
         hikariDataSource = new HikariDataSource(config);
+        init();
+    }
+
+    private void init() {
+        var createDatabase = Optional.ofNullable(System.getenv("CREATE_DATABASE"))
+                .map(Boolean::valueOf)
+                .orElse(false);
+        if (createDatabase) {
+            try (var con = hikariDataSource.getConnection();
+                 var statement = con.createStatement()) {
+                statement.execute("""
+                        CREATE TABLE public.CLIENTE (
+                            ID INT PRIMARY KEY,
+                            LIMITE INT,
+                            SALDO INT DEFAULT 0
+                        )
+                        """);
+
+                statement.execute("""
+                        CREATE TABLE public.TRANSACAO (
+                            ID INT AUTO_INCREMENT PRIMARY KEY,
+                            CLIENTE_ID INT NOT NULL,
+                            VALOR INT NOT NULL,
+                            TIPO CHAR(1) NOT NULL,
+                            DESCRICAO VARCHAR(10) NOT NULL,
+                            DATA TIMESTAMP NOT NULL
+                        )""");
+
+                statement.execute("CREATE INDEX IDX_TRANSACAO_CLIENTE ON TRANSACAO (CLIENTE_ID ASC)");
+
+                statement.execute("""
+                        INSERT INTO public.CLIENTE (ID, LIMITE)
+                        VALUES (1, 100000),
+                               (2, 80000),
+                               (3, 1000000),
+                               (4, 10000000),
+                               (5, 500000);
+                        """);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public ExtratoResposta extrato(int clienteId) {

@@ -7,7 +7,7 @@ Aplicação desenvolvida em Java compilada para código de máquina com a GraalV
 
 Inicialmente estava utilizando a lib do gson, depois mudei para a jackson, mas removendo a lib e fazendo o parse manualmente, melhorei a performance.
 
-Utilizei postgres como banco de dados, implementando uma procedure para validação de saldo e limite, bem como inserir a transação.
+Utilizei o banco de dados H2, onde compilei o mesmo para código de máquina com a GraalVM.
 
 Para proxy fiz testes com o HAProxy, Envoy e Nginx o qual teve melhor performance.
 
@@ -16,7 +16,7 @@ Para proxy fiz testes com o HAProxy, Envoy e Nginx o qual teve melhor performanc
 
 mvn -Pnative -Dagent package
 
-docker build -t gasparbarancelli/rinha-2024-java-nativo:latest .
+docker build -t gasparbarancelli/rinha-2024-java-nativo-22:latest .
 
 
 ##### Repositorio Oficial
