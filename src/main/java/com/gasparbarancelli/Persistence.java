@@ -86,6 +86,7 @@ public class Persistence {
                     writer.writeNext(line);
                 }
             } catch (IOException e) {
+                e.printStackTrace();
                 LOGGER.log(Level.SEVERE, "Falha ao criar csv");
             }
         }
