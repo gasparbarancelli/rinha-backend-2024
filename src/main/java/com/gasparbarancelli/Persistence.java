@@ -40,7 +40,8 @@ public class Persistence {
         for (String clienteId : limitePorCliente.keySet()) {
             var pathCliente = basePath + File.separator + "cliente-" + clienteId + ".csv";
             var pathTransacao = basePath + File.separator + "transacoes-cliente-" + clienteId + ".csv";
-            //"D:\\Projetos\\rinha-persistence\\data\\transacoes-cliente-" + clienteId + ".csv";
+
+            System.out.println("Diretorio do cliente: " + pathCliente);
 
             arquivoPorCliente.put(clienteId, pathCliente);
             arquivoDeTransacoesPorCliente.put(clienteId, pathTransacao);
