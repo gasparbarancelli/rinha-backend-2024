@@ -7,8 +7,7 @@ services:
     environment:
       - HTTP_PORT=8081
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     deploy:
       resources:
         limits:
@@ -22,8 +21,7 @@ services:
     environment:
       - HTTP_PORT=8082
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     deploy:
       resources:
         limits:
@@ -50,9 +48,6 @@ services:
     network_mode: host
     environment:
       - HTTP_PORT=8083
-    depends_on:
-      db:
-        condition: service_healthy
     deploy:
       resources:
         limits:

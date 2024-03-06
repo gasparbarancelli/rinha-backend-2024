@@ -42,6 +42,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
             exchange.sendResponseHeaders(200, json.length());
             exchange.setBody(json);
         } catch (Exception e) {
+            e.printStackTrace();
             exchange.sendResponseHeaders(422, 0);
         } finally {
             exchange.close();
@@ -56,6 +57,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
             exchange.sendResponseHeaders(200, json.length());
             exchange.setBody(json);
         } catch (Exception e) {
+            e.printStackTrace();
             exchange.sendResponseHeaders(500, 0);
         } finally {
             exchange.close();
