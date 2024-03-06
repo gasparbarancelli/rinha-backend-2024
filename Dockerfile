@@ -8,6 +8,8 @@ COPY --from=ubi /usr/lib64/libstdc++.so.6 /usr/lib64/libstdc++.so.6
 COPY --from=ubi /usr/lib64/libz.so.1 /usr/lib64/libz.so.1
 
 RUN mkdir /data
+RUN chown -R 1001:root /data
+RUN chmod 755 /data
 
 WORKDIR /work/
 RUN chown 1001 /work \

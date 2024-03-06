@@ -1,0 +1,27 @@
+[
+  {
+    "name": "com.gasparbarancelli.Extrato",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.gasparbarancelli.ExtratoSaldo",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.gasparbarancelli.ExtratoTransacao",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.gasparbarancelli.Transacao",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.gasparbarancelli.Cliente",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true
+  }
+]
