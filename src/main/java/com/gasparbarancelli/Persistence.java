@@ -27,7 +27,7 @@ public class Persistence {
 
     public Persistence() {
         var basePath = Optional.ofNullable(System.getenv("CSV_BASE_PATH"))
-                .orElse("D:\\Projetos\\rinha-persistence\\data");
+                .orElse("/data");
 
         Map<String, Integer> limitePorCliente = Map.of(
                 "1", 100000,

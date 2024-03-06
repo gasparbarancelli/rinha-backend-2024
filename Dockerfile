@@ -13,7 +13,7 @@ WORKDIR /work/
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \
     && chown 1001:root /work
-COPY --chown=1001:root target/rinhaBackend /work/application
+COPY --chown=1001:root target/rinhaPersistence /work/application
 
 USER 1001
 
