@@ -32,8 +32,7 @@ public class HttpServer {
     private Optional<InetSocketAddress> getSocketAddress() {
         var port = System.getenv("HTTP_PORT");
         if (Objects.isNull(port)) {
-            //return Optional.empty();
-            port = "8081";
+            return Optional.empty();
         }
 
         LOGGER.info("Servidor http respondendo na porta " + port);
