@@ -3,20 +3,18 @@
 
 ## Rinha de Backend 2024
 
-Aplicação desenvolvida em Java compilada para código de máquina com a GraalVM, sem utilizar nenhum framework, apenas as libs de jdbc do postgres e do hikari para pool de conexão com banco de dados.
+Aplicação desenvolvida em Java compilada para código de máquina com a GraalVM, sem utilizar nenhum framework nem mesmo libs.
 
-Inicialmente estava utilizando a lib do gson, depois mudei para a jackson, mas removendo a lib e fazendo o parse manualmente, melhorei a performance.
+Os dados estao sendo persistidos em outro projeto backend desenvolvido por mim, onde armazeno tudo em CSV (https://github.com/gasparbarancelli/rinha-backend-2024/tree/feature/persistence).
 
-Utilizei postgres como banco de dados, implementando uma procedure para validação de saldo e limite, bem como inserir a transação.
-
-Para proxy fiz testes com o HAProxy, Envoy e Nginx o qual teve melhor performance.
+Para proxy utilizo o nginx.
 
 
 ##### BUILD
 
 mvn -Pnative -Dagent package
 
-docker build -t gasparbarancelli/rinha-2024-java-nativo:latest .
+docker build -t gasparbarancelli/rinha-2024-java-nativo-persistence:latest .
 
 
 ##### Repositorio Oficial

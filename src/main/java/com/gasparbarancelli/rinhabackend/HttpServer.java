@@ -1,7 +1,5 @@
 package com.gasparbarancelli.rinhabackend;
 
-import com.sun.net.httpserver.HttpServer;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -9,13 +7,13 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-public class RinhaBackendServer {
+public class HttpServer {
 
-    private static final Logger LOGGER = Logger.getLogger(RinhaBackendServer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(HttpServer.class.getName());
 
     public static void main(String[] args) throws IOException {
         LOGGER.info("Iniciando aplicacao");
-        new RinhaBackendServer().startServer();
+        new HttpServer().startServer();
     }
 
     public void startServer() throws IOException {
@@ -25,8 +23,8 @@ public class RinhaBackendServer {
             return;
         }
 
-        var httpServer = HttpServer.create(socketAddress.get(), 0);
-        httpServer.createContext("/clientes", new TransacaoHttpHandler());
+        var httpServer = com.sun.net.httpserver.HttpServer.create(socketAddress.get(), 0);
+        httpServer.createContext("/clientes", new HttpHandler());
         httpServer.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         httpServer.start();
     }
@@ -34,7 +32,8 @@ public class RinhaBackendServer {
     private Optional<InetSocketAddress> getSocketAddress() {
         var port = System.getenv("HTTP_PORT");
         if (Objects.isNull(port)) {
-            return Optional.empty();
+            //return Optional.empty();
+            port = "8081";
         }
 
         LOGGER.info("Servidor http respondendo na porta " + port);

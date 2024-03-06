@@ -6,28 +6,15 @@
     <artifactId>rinhabackend-java</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>demo</name>
-    <description>Demo project for Spring Boot</description>
+    <description>API para rinha backend acessando a api de persistencia</description>
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <imageName>rinhaBackend</imageName>
-        <mainClass>com.gasparbarancelli.rinhabackend.RinhaBackendServer</mainClass>
+        <mainClass>com.gasparbarancelli.rinhabackend.HttpServer</mainClass>
     </properties>
-    <dependencies>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.3.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>5.0.1</version>
-        </dependency>
-    </dependencies>
 
     <profiles>
         <profile>

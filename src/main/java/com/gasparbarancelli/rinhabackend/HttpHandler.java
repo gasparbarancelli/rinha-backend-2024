@@ -1,14 +1,13 @@
 package com.gasparbarancelli.rinhabackend;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 
-public class TransacaoHttpHandler implements HttpHandler {
+public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
     private final DataSource dataSource = new DataSource();
-    private final TransacaoMapper transacaoMapper = new TransacaoMapper();
+    private final Mapper mapper = new Mapper();
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -36,10 +35,8 @@ public class TransacaoHttpHandler implements HttpHandler {
     private void doPost(CustomHttpExchange exchange, int clienteId) {
         try {
             var body = exchange.getBody();
-            var transacaoRequisicao = transacaoMapper.map(body);
-            var transacaoResposta = dataSource.insert(transacaoRequisicao.geraTransacao(clienteId));
-
-            var json = transacaoMapper.map(transacaoResposta);
+            body = mapper.map(body, clienteId);
+            var json = dataSource.insert(body);
 
             exchange.addHeader("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, json.length());
@@ -53,12 +50,13 @@ public class TransacaoHttpHandler implements HttpHandler {
 
     private void doGet(CustomHttpExchange exchange, int clienteId) {
         try {
-            var extrato = dataSource.extrato(clienteId);
-            var json = transacaoMapper.map(extrato);
+            var json = dataSource.extrato(clienteId);
 
             exchange.addHeader("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, json.length());
             exchange.setBody(json);
+        } catch (Exception e) {
+            exchange.sendResponseHeaders(500, 0);
         } finally {
             exchange.close();
         }

@@ -1,128 +1,87 @@
-package com.gasparbarancelli.rinhabackend;
+/*package com.gasparbarancelli.rinhabackend;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
-import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class DataSource {
 
-    private final HikariDataSource hikariDataSource;
-
-    private final String SQL_CLIENTE_FIND_BY_ID = """
-                SELECT LIMITE, SALDO
-                FROM CLIENTE
-                WHERE id = ?
-            """;
-
-    private final String SQL_TRANSACAO_FIND = """
-                SELECT VALOR, TIPO, DESCRICAO, DATA
-                FROM TRANSACAO
-                WHERE CLIENTE_ID = ?
-                ORDER BY DATA DESC
-                LIMIT 10;
-            """;
-
-    private final String SQL_INSERT_TRANSACAO = "SELECT saldoRetorno, limiteRetorno FROM efetuar_transacao(?, ?, ?, ?)";
+    private final HttpConnectionPool connectionPool;
+    private final Map<Integer, HttpConnectionPool> connectionPoolByCliente = new HashMap<>();
 
     public DataSource() {
-        var host = Optional.ofNullable(System.getenv("DATABASE_HOST"))
-                .orElse("localhost");
+        String url = Optional.ofNullable(System.getenv("PERSISTENCE_ENDPOINT"))
+                .orElse("http://localhost:8083");
+        this.connectionPool = new HttpConnectionPool(url, 10);
 
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://" + host + "/rinha-backend?loggerLevel=OFF");
-        config.setUsername("rinha");
-        config.setPassword("backend");
-        config.setConnectionInitSql("SELECT 1");
-        config.setMinimumIdle(5);
-        config.setMaximumPoolSize(5);
-
-        hikariDataSource = new HikariDataSource(config);
-    }
-
-    public ExtratoResposta extrato(int clienteId) {
-        try (var con = hikariDataSource.getConnection();
-             var stmtFindCliente = con.prepareStatement(SQL_CLIENTE_FIND_BY_ID);
-             var stmtFindTransacoes = con.prepareStatement(SQL_TRANSACAO_FIND)) {
-            var cliente = getCliente(clienteId, stmtFindCliente);
-            var transacoes = getTransacoes(clienteId, stmtFindTransacoes);
-
-            var saldo = new ExtratoSaldoResposta(
-                    cliente.saldo(),
-                    LocalDateTime.now(),
-                    cliente.limite()
-            );
-
-            return new ExtratoResposta(
-                    saldo,
-                    transacoes
-            );
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        for (int i = 1; i <= 5; i++) {
+            var clienteUrl = url + "/" + i;
+            connectionPoolByCliente.put(i, new HttpConnectionPool(clienteUrl, 10));
         }
     }
 
-    private Cliente getCliente(int clienteId, PreparedStatement statement) throws SQLException {
-        statement.setObject(1, clienteId);
-        try (var resultSet = statement.executeQuery()) {
-            resultSet.next();
-
-            var limite = resultSet.getInt(1);
-            var saldo = resultSet.getInt(2);
-
-            return new Cliente(
-                    clienteId,
-                    limite,
-                    saldo
-            );
-        }
+    public String extrato(int clienteId) throws Exception {
+        return connectionPoolByCliente.get(clienteId).sendRequest("GET");
     }
 
-    private List<ExtratoTransacaoResposta> getTransacoes(int clienteId, PreparedStatement statement) throws SQLException {
-        statement.setObject(1, clienteId);
-        try (var resultSet = statement.executeQuery()) {
-            List<ExtratoTransacaoResposta> transacoes = new ArrayList<>(resultSet.getFetchSize());
-            while (resultSet.next()) {
-                var valor = resultSet.getInt(1);
-                var tipo = resultSet.getString(2);
-                var descricao = resultSet.getString(3);
-                var data = resultSet.getTimestamp(4);
+    public String insert(String json) throws Exception {
+        return connectionPool.sendRequest("POST", json);
+    }
+}*/
+package com.gasparbarancelli.rinhabackend;
 
-                var transacao = new ExtratoTransacaoResposta(
-                        valor,
-                        TipoTransacao.valueOf(tipo),
-                        descricao,
-                        data.toLocalDateTime()
-                );
-                transacoes.add(transacao);
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Optional;
+
+public class DataSource {
+
+    private final String url;
+
+    public DataSource() {
+        url = Optional.ofNullable(System.getenv("PERSISTENCE_ENDPOINT"))
+                .orElse("http://localhost:8083");
+    }
+
+    public String extrato(int clienteId) throws Exception {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url + "/" + clienteId).openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Content-Type", "application/json");
+
+        int responseCode = connection.getResponseCode();
+        if (responseCode == 200) {
+            try (InputStream inputStream = connection.getInputStream()) {
+                byte[] inputBytes = new byte[inputStream.available()];
+                inputStream.read(inputBytes);
+                return new String(inputBytes);
             }
-            return transacoes;
+        } else {
+            throw new Exception();
         }
     }
 
-    public TransacaoResposta insert(Transacao transacao) throws Exception {
-        try (var con = hikariDataSource.getConnection();
-             CallableStatement statement = con.prepareCall(SQL_INSERT_TRANSACAO)) {
-            statement.setInt(1, transacao.cliente());
-            statement.setString(2, transacao.tipo().name());
-            statement.setInt(3, transacao.valor());
-            statement.setString(4, transacao.descricao());
-            try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                int novoSaldo = resultSet.getInt(1);
-                int limite = resultSet.getInt(2);
-                return new TransacaoResposta(
-                        limite,
-                        novoSaldo
-                );
+    public String insert(String json) throws Exception {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Content-Length", String.valueOf(json.length()));
+        connection.setDoOutput(true);
+
+        try (OutputStream outputStream  = connection.getOutputStream()) {
+            outputStream.write(json.getBytes());
+        }
+
+        int responseCode = connection.getResponseCode();
+        if (responseCode == 200) {
+            try (InputStream inputStream = connection.getInputStream()) {
+                byte[] inputBytes = new byte[inputStream.available()];
+                inputStream.read(inputBytes);
+                return new String(inputBytes);
             }
+        } else {
+            throw new Exception();
         }
     }
 
